@@ -1,0 +1,23 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider DefaultScrollbar="true" @bind-IsDarkMode="@esModoOscuro" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<div style="position: fixed; top: 16px; right: 16px; z-index: 1000;">
+    <MudTooltip Text="@(esModoOscuro ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro")">
+        <MudFab StartIcon="@(esModoOscuro ? Icons.Material.Filled.Brightness7 : Icons.Material.Filled.Brightness4)" 
+                Color="@(esModoOscuro ? Color.Surface : Color.Inherit)" 
+                Size="Size.Medium" 
+                OnClick="@(() => esModoOscuro = !esModoOscuro)" />
+    </MudTooltip>
+</div>
+
+<main>
+    @Body
+</main>
+
+@code {
+    private bool esModoOscuro;
+}
