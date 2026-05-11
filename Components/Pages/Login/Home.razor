@@ -1,0 +1,155 @@
+@page "/"
+@layout EmptyLayout
+@inject IJSRuntime JS
+@inject IMensajeToastr Toastr
+@inject NavigationManager NavigationManager
+@inject MudApp.Components.Helpers.UserSession Session
+
+<div class="d-flex justify-center align-center mud-width-full mud-background-gray" style="min-height: 100vh; background: var(--mud-palette-background);">
+    <MudContainer MaxWidth="MaxWidth.Small" Class="px-4">
+        <MudCard Elevation="25" Class="pa-4 pa-sm-8 rounded-xl mud-width-full">
+            <MudCardHeader Class="d-flex justify-center pb-0">
+                <CardHeaderContent>
+                    <div class="d-flex flex-column align-center text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Color="Color.Success" Style="font-size: 64px;" />
+                        <MudText Typo="Typo.h4" Class="mt-2" Color="Color.Success" Style="font-weight: bold;">YAC-Prestamos</MudText>
+                        <MudText Typo="Typo.subtitle2" Color="Color.Success" Class="mb-4">Sistema de Gestión de Préstamos</MudText>
+                    </div>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTextField @bind-Value="email" Label="Correo Electrónico" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                <MudTextField @bind-Value="contrasena" Label="Contraseña" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="@tipoEntradaContrasena"
+                              Adornment="Adornment.End" AdornmentIcon="@iconoEntradaContrasena" OnAdornmentClick="AlternarVisibilidadContrasena" AdornmentAriaLabel="Mostrar contraseña" />
+                <div class="d-flex justify-space-between align-center mt-2 mb-4">
+                    <MudCheckBox T="bool" Label="Recordarme" Color="Color.Success" Dense="true" />
+                    <MudLink Href="#" Typo="Typo.body2" Color="Color.Success">¿Olvidó su contraseña?</MudLink>
+                </div>
+            </MudCardContent>
+            <MudCardActions Class="d-flex flex-column align-stretch px-4 pb-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Large" Class="rounded-lg py-2" OnClick="IniciarSesion" Disabled="@cargando">
+                    @if (cargando)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">Iniciando...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Iniciar Sesión</MudText>
+                    }
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudContainer>
+</div>
+
+@code {
+    private string email = "";
+    private string contrasena = "";
+    private bool cargando = false;
+
+    private bool mostrarContrasena;
+    private InputType tipoEntradaContrasena = InputType.Password;
+    private string iconoEntradaContrasena = Icons.Material.Filled.VisibilityOff;
+
+    private IJSObjectReference? _firebaseModule;
+
+    protected override void OnInitialized()
+    {
+        if (Session.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/inicio", replace: true);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !Session.IsAuthenticated)
+        {
+            try
+            {
+                var uid = await JS.InvokeAsync<string>("window.sesion.obtener");
+                if (!string.IsNullOrEmpty(uid))
+                {
+                    Session.SetSession(uid);
+                    NavigationManager.NavigateTo("/inicio", replace: true);
+                    return;
+                }
+
+                _firebaseModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/firebase-interop.js");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error cargando Firebase: " + ex.Message);
+            }
+        }
+    }
+
+    private void AlternarVisibilidadContrasena()
+    {
+        mostrarContrasena = !mostrarContrasena;
+        if (mostrarContrasena)
+        {
+            iconoEntradaContrasena = Icons.Material.Filled.Visibility;
+            tipoEntradaContrasena = InputType.Text;
+        }
+        else
+        {
+            iconoEntradaContrasena = Icons.Material.Filled.VisibilityOff;
+            tipoEntradaContrasena = InputType.Password;
+        }
+    }
+
+    private async Task IniciarSesion()
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(contrasena))
+        {
+            await Toastr.MostrarMensajeWarningWithTitle("Por favor ingrese correo y contraseña.", "Advertencia");
+            return;
+        }
+
+        if (_firebaseModule == null)
+        {
+            await Toastr.MostrarMensajeErrorWithTitle("Firebase no ha terminado de cargar.", "Error");
+            return;
+        }
+
+        cargando = true;
+        StateHasChanged();
+
+        bool navigated = false;
+        try
+        {
+            var result = await _firebaseModule.InvokeAsync<ResultadoLogin>("loginWithEmail", email, contrasena);
+
+            if (result != null && result.Exito)
+            {
+                Session.SetSession(result.Uid);
+                await JS.InvokeVoidAsync("window.sesion.guardar", result.Uid);
+                
+                await Toastr.MostrarMensajeExitosoWithTitle(result.Mensaje ?? "Inicio de sesión exitoso", "Éxito");
+                navigated = true;
+            }
+            else
+            {
+                await Toastr.MostrarMensajeErrorWithTitle(result?.Mensaje ?? "Error al iniciar sesión", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeErrorWithTitle("Error inesperado: " + ex.Message, "Error Crítico");
+        }
+
+        if (navigated)
+        {
+            NavigationManager.NavigateTo("/inicio", replace: true);
+        }
+        else
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+}

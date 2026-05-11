@@ -1,4 +1,5 @@
 using MudApp.Components;
+using MudApp.Components.Helpers;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+builder.Services.AddScoped<IMensajeToastr, MensajeToastr>();
+builder.Services.AddScoped<UserSession>();
 
 var app = builder.Build();
 

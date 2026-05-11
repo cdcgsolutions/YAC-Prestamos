@@ -1,0 +1,74 @@
+@page "/inicio"
+@layout EmptyLayout
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@inject MudApp.Components.Helpers.UserSession Session
+
+<PageTitle>Home</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudPaper Elevation="4" Class="pa-6 rounded-xl mud-theme-success" Style="color: white;">
+                <div class="d-flex justify-space-between align-center">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Class="mr-4"/>
+                        <div>
+                            <MudText Typo="Typo.h4" Style="font-weight: bold;">Bienvenido al Sistema YAC-Prestamos</MudText>
+                            <MudText Typo="Typo.subtitle1">Has iniciado sesión correctamente y estás dentro del panel de control.</MudText>
+                        </div>
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Logout" OnClick="CerrarSesion">
+                        Cerrar Sesión
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success"><MudIcon Icon="@Icons.Material.Filled.People" Class="mr-2 mb-n1" />Clientes Activos</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.h3" Align="Align.Center">0</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success"><MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-2 mb-n1" />Préstamos Activos</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.h3" Align="Align.Center">0</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Protección de ruta estricta (cero parpadeos)
+        if (!Session.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+        }
+    }
+
+    private async Task CerrarSesion()
+    {
+        // Borrar credenciales de C# y del navegador
+        Session.ClearSession();
+        await JS.InvokeVoidAsync("window.sesion.cerrar");
+        
+        NavigationManager.NavigateTo("/", replace: true);
+    }
+}
