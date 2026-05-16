@@ -1,0 +1,81 @@
+@inject MudApp.Components.Services.FirebaseService Firebase
+@inject MudApp.Components.Helpers.IMensajeToastr Toastr
+
+<div class="pa-4">
+    @if (cargando)
+    {
+        <div class="d-flex justify-center my-4">
+            <MudProgressCircular Color="Color.Success" Size="Size.Medium" Indeterminate="true" />
+        </div>
+    }
+    else if (!pagos.Any())
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No se han registrado pagos para este préstamo.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="@pagos" Dense="true" Hover="true" Bordered="true" Striped="true">
+            <HeaderContent>
+                <MudTh>ID</MudTh>
+                <MudTh>Fecha de Pago</MudTh>
+                <MudTh>Monto Abonado</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.IdDocumento</MudTd>
+                <MudTd DataLabel="Fecha de Pago">
+                    @if (DateTime.TryParse(context.FechaPago, out var fecha))
+                    {
+                        @fecha.ToString("dd/MM/yyyy HH:mm")
+                    }
+                    else
+                    {
+                        @context.FechaPago
+                    }
+                </MudTd>
+                <MudTd DataLabel="Monto Abonado" Style="font-weight: bold; color: green;">Bs. @context.MontoAbonado.ToString("N2")</MudTd>
+            </RowTemplate>
+        </MudTable>
+
+        <div class="d-flex justify-space-between mt-4">
+            <MudText Typo="Typo.subtitle1"><strong>Total Pagado:</strong></MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Success" Style="font-weight: bold;">Bs. @pagos.Sum(p => p.MontoAbonado).ToString("N2")</MudText>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public MudApp.Components.DTOs.PrestamoDTO? prestamo { get; set; }
+
+    private List<MudApp.Components.DTOs.PagoDTO> pagos = new();
+    private bool cargando = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (prestamo != null)
+        {
+            await CargarPagos();
+        }
+    }
+
+    private async Task CargarPagos()
+    {
+        cargando = true;
+        try
+        {
+            var result = await Firebase.ObtenerPagosPorPrestamoAsync(prestamo!.IdDocumento);
+            if (result != null && result.Exito && result.Datos != null)
+            {
+                // Sort in memory by date descending
+                pagos = result.Datos.OrderByDescending(p => p.FechaPago).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error al cargar el historial: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

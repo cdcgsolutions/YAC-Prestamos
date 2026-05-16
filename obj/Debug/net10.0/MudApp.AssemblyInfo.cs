@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MudApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+759f76734c9bf602e5b006f54c476dcef2ccc81a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+29450f0e803f25088eb72632f0ffbc6f2a1623d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("MudApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MudApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,171 @@
+<div class="pa-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudSelect T="int?" @bind-Value="idCliente" Label="Cliente" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" AnchorOrigin="Origin.BottomCenter" SearchBox="true" SearchBoxAutoFocus="true" Placeholder="Selecciona a un cliente">
+                @foreach (var cli in clientes.Where(c => c.EstaHabilitado))
+                {
+                    <MudSelectItem T="int?" Value="@cli.Id">@cli.Nombre</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="monto" Label="Monto del Préstamo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Min="0.0M" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" OnBlur="CalcularValores" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="porcentajeInteres" Label="Interés (%)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Min="0.0M" Max="100.0M" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Percent" OnBlur="CalcularValores" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string" @bind-Value="modalidadCobro" Label="Modalidad de Cobro" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem Value="@("Diario")">Diario</MudSelectItem>
+                <MudSelectItem Value="@("Semanal")">Semanal</MudSelectItem>
+                <MudSelectItem Value="@("Quincenal")">Quincenal</MudSelectItem>
+                <MudSelectItem Value="@("Mensual")">Mensual</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        @if (prestamo != null && !string.IsNullOrEmpty(prestamo.IdDocumento))
+        {
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="estado" Label="Estado del Préstamo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Activo")">Activo</MudSelectItem>
+                    <MudSelectItem Value="@("Pagado")">Pagado</MudSelectItem>
+                    <MudSelectItem Value="@("Atrasado")">Atrasado</MudSelectItem>
+                    <MudSelectItem Value="@("Anulado")">Anulado</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        }
+        
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-2 mb-4 rounded-lg">
+                <div class="d-flex justify-space-between w-100">
+                    <MudText Typo="Typo.subtitle1"><strong>Monto Total a Pagar:</strong> Bs. @montoTotal.ToString("N2")</MudText>
+                </div>
+            </MudAlert>
+        </MudItem>
+    </MudGrid>
+
+    <div class="d-flex justify-end gap-2 mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Guardar" Disabled="@cargando" FullWidth="true" Size="Size.Large" Class="rounded-lg">
+            @if (cargando)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando...</MudText>
+            }
+            else
+            {
+                <MudText>@(prestamo != null && !string.IsNullOrEmpty(prestamo.IdDocumento) ? "Guardar Cambios" : "Crear Préstamo")</MudText>
+            }
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MudApp.Components.DTOs.PrestamoDTO? prestamo { get; set; }
+    [Parameter] public List<MudApp.Components.DTOs.ClienteDTO> clientes { get; set; } = new();
+    [Parameter] public EventCallback onGuardar { get; set; }
+
+    private int? idCliente = null;
+    private decimal monto;
+    private decimal porcentajeInteres;
+    private decimal montoTotal;
+    private decimal saldoPendiente;
+    private string modalidadCobro = "Mensual";
+    private string estado = "Activo";
+    private bool cargando = false;
+
+    [Inject] MudApp.Components.Services.FirebaseService Firebase { get; set; } = default!;
+    [Inject] MudApp.Components.Helpers.IMensajeToastr Toastr { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        if (prestamo != null)
+        {
+            idCliente = prestamo.IdCliente;
+            monto = prestamo.Monto;
+            porcentajeInteres = prestamo.PorcentajeInteres;
+            montoTotal = prestamo.MontoTotal;
+            saldoPendiente = prestamo.SaldoPendiente;
+            modalidadCobro = prestamo.ModalidadCobro;
+            estado = prestamo.Estado;
+        }
+        else
+        {
+            LimpiarCampos();
+        }
+    }
+
+    private void LimpiarCampos()
+    {
+        idCliente = null;
+        monto = 0;
+        porcentajeInteres = 10; // Default example
+        montoTotal = 0;
+        saldoPendiente = 0;
+        modalidadCobro = "Mensual";
+        estado = "Activo";
+    }
+
+    private void CalcularValores()
+    {
+        montoTotal = monto + (monto * (porcentajeInteres / 100));
+        
+        // Si es nuevo préstamo, el saldo pendiente es igual al monto total
+        if (prestamo == null || string.IsNullOrEmpty(prestamo.IdDocumento))
+        {
+            saldoPendiente = montoTotal;
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (idCliente == null || idCliente == 0)
+        {
+            await Toastr.MostrarMensajeWarning("Por favor, seleccione un cliente.");
+            return;
+        }
+        if (monto <= 0)
+        {
+            await Toastr.MostrarMensajeWarning("El monto debe ser mayor a 0.");
+            return;
+        }
+
+        CalcularValores();
+        
+        var clienteSeleccionado = clientes.FirstOrDefault(c => c.Id == idCliente);
+        string nombreCliente = clienteSeleccionado?.Nombre ?? "Desconocido";
+
+        cargando = true;
+        try
+        {
+            MudApp.Components.Models.ResultadoAccion result;
+            if (prestamo != null && !string.IsNullOrEmpty(prestamo.IdDocumento))
+            {
+                result = await Firebase.ActualizarPrestamoAsync(prestamo.IdDocumento, idCliente.Value, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado);
+            }
+            else
+            {
+                result = await Firebase.RegistrarPrestamoAsync(idCliente.Value, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado);
+            }
+
+            if (result.Exito)
+            {
+                await Toastr.MostrarMensajeExitoso(result.Mensaje ?? "Operación exitosa");
+                await onGuardar.InvokeAsync();
+            }
+            else
+            {
+                await Toastr.MostrarMensajeError(result.Mensaje ?? "Error al procesar");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error inesperado: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

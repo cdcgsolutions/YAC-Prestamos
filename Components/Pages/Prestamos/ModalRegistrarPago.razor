@@ -1,0 +1,83 @@
+<div class="pa-4">
+    @if (prestamo != null)
+    {
+        <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>Cliente:</strong> @prestamo.NombreCliente</MudText>
+        <MudText Typo="Typo.subtitle1" Class="mb-4" Color="Color.Error"><strong>Saldo Pendiente:</strong> Bs. @prestamo.SaldoPendiente.ToString("N2")</MudText>
+
+        <MudNumericField @bind-Value="montoAbonado" Label="Monto a Abonar" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Min="0.01M" Max="@prestamo.SaldoPendiente" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money" />
+
+        <div class="d-flex justify-end gap-2 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="GuardarPago" Disabled="@cargando" FullWidth="true" Size="Size.Large" Class="rounded-lg">
+                @if (cargando)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">Procesando...</MudText>
+                }
+                else
+                {
+                    <MudText>Registrar Pago</MudText>
+                }
+            </MudButton>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public MudApp.Components.DTOs.PrestamoDTO? prestamo { get; set; }
+    [Parameter] public EventCallback onGuardar { get; set; }
+
+    private decimal montoAbonado;
+    private bool cargando = false;
+
+    [Inject] MudApp.Components.Services.FirebaseService Firebase { get; set; } = default!;
+    [Inject] MudApp.Components.Helpers.IMensajeToastr Toastr { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        if (prestamo != null)
+        {
+            montoAbonado = prestamo.SaldoPendiente; // Default to full payment for convenience
+        }
+    }
+
+    private async Task GuardarPago()
+    {
+        if (prestamo == null) return;
+
+        if (montoAbonado <= 0)
+        {
+            await Toastr.MostrarMensajeWarning("El monto debe ser mayor a 0.");
+            return;
+        }
+
+        if (montoAbonado > prestamo.SaldoPendiente)
+        {
+            await Toastr.MostrarMensajeWarning("El monto no puede ser mayor al saldo pendiente.");
+            return;
+        }
+
+        cargando = true;
+        try
+        {
+            var result = await Firebase.RegistrarPagoAsync(prestamo.IdDocumento, montoAbonado);
+
+            if (result.Exito)
+            {
+                await Toastr.MostrarMensajeExitoso(result.Mensaje ?? "Pago registrado con éxito.");
+                await onGuardar.InvokeAsync();
+            }
+            else
+            {
+                await Toastr.MostrarMensajeError(result.Mensaje ?? "Error al registrar el pago.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error inesperado: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

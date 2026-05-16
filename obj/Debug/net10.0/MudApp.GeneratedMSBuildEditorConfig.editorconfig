@@ -61,6 +61,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Prestamos/ModalCreacionEdicionPrestamos.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmVzdGFtb3NcTW9kYWxDcmVhY2lvbkVkaWNpb25QcmVzdGFtb3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Prestamos/ModalHistorialPagos.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmVzdGFtb3NcTW9kYWxIaXN0b3JpYWxQYWdvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Prestamos/ModalRegistrarPago.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmVzdGFtb3NcTW9kYWxSZWdpc3RyYXJQYWdvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Prestamos/Prestamos.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmVzdGFtb3NcUHJlc3RhbW9zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Usuarios/ModalCreacionEdicionUsuarios.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc3Vhcmlvc1xNb2RhbENyZWFjaW9uRWRpY2lvblVzdWFyaW9zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

@@ -71,5 +71,35 @@ namespace MudApp.Components.Services
             return await module.InvokeAsync<ResultadoAccion>("actualizarCliente", idDocumento, nombre, fechaNacimiento?.ToString("yyyy-MM-dd"), estadoCivil, direccion, celular, correo, estaHabilitado);
         }
 
+        public async Task<ResultadoAccion> RegistrarPrestamoAsync(int idCliente, string nombreCliente, decimal monto, decimal porcentajeInteres, decimal montoTotal, decimal saldoPendiente, string modalidadCobro, string estado)
+        {
+            var module = await GetModuleAsync();
+            return await module.InvokeAsync<ResultadoAccion>("registrarPrestamo", idCliente, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado);
+        }
+
+        public async Task<ResultadoPrestamos> ObtenerPrestamosAsync()
+        {
+            var module = await GetModuleAsync();
+            return await module.InvokeAsync<ResultadoPrestamos>("obtenerPrestamos");
+        }
+
+        public async Task<ResultadoAccion> ActualizarPrestamoAsync(string idDocumento, int idCliente, string nombreCliente, decimal monto, decimal porcentajeInteres, decimal montoTotal, decimal saldoPendiente, string modalidadCobro, string estado)
+        {
+            var module = await GetModuleAsync();
+            return await module.InvokeAsync<ResultadoAccion>("actualizarPrestamo", idDocumento, idCliente, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado);
+        }
+
+        public async Task<ResultadoAccion> RegistrarPagoAsync(string idPrestamo, decimal montoAbonado)
+        {
+            var module = await GetModuleAsync();
+            return await module.InvokeAsync<ResultadoAccion>("registrarPago", idPrestamo, montoAbonado);
+        }
+
+        public async Task<ResultadoPagos> ObtenerPagosPorPrestamoAsync(string idPrestamo)
+        {
+            var module = await GetModuleAsync();
+            return await module.InvokeAsync<ResultadoPagos>("obtenerPagosPorPrestamo", idPrestamo);
+        }
+
     }
 }

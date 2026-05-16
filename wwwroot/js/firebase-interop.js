@@ -209,3 +209,139 @@ export async function actualizarCliente(idDocumento, nombre, fechaNacimiento, es
         return { exito: false, mensaje: "Error al actualizar cliente: " + error.message };
     }
 }
+
+export async function registrarPrestamo(idCliente, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado) {
+    try {
+        const prestamosRef = collection(db, "Prestamos");
+        
+        const qMaxId = query(prestamosRef, orderBy("Id", "desc"), limit(1));
+        const maxIdSnap = await getDocs(qMaxId);
+        
+        let newId = 1;
+        if (!maxIdSnap.empty) {
+            newId = maxIdSnap.docs[0].data().Id + 1;
+        }
+
+        const newIdStr = newId.toString();
+        const docRef = doc(db, "Prestamos", newIdStr);
+        await setDoc(docRef, {
+            Id: newId,
+            IdCliente: idCliente,
+            NombreCliente: nombreCliente,
+            Monto: monto,
+            PorcentajeInteres: porcentajeInteres,
+            MontoTotal: montoTotal,
+            SaldoPendiente: saldoPendiente,
+            ModalidadCobro: modalidadCobro,
+            Estado: estado,
+            FechaRegistro: new Date().toISOString()
+        });
+
+        return { exito: true, uid: newIdStr, mensaje: "Préstamo registrado exitosamente." };
+    } catch (error) {
+        return { exito: false, uid: null, mensaje: "Error al registrar préstamo: " + error.message };
+    }
+}
+
+export async function obtenerPrestamos() {
+    try {
+        const prestamosRef = collection(db, "Prestamos");
+        const querySnapshot = await getDocs(prestamosRef);
+        
+        let prestamos = [];
+        querySnapshot.forEach((doc) => {
+            prestamos.push({ idDocumento: doc.id, ...doc.data() });
+        });
+        
+        return { exito: true, datos: prestamos, mensaje: "Préstamos cargados exitosamente." };
+    } catch (error) {
+        return { exito: false, datos: null, mensaje: "Error al cargar préstamos: " + error.message };
+    }
+}
+
+export async function actualizarPrestamo(idDocumento, idCliente, nombreCliente, monto, porcentajeInteres, montoTotal, saldoPendiente, modalidadCobro, estado) {
+    try {
+        const docRef = doc(db, "Prestamos", idDocumento);
+        await setDoc(docRef, {
+            Id: parseInt(idDocumento),
+            IdCliente: idCliente,
+            NombreCliente: nombreCliente,
+            Monto: monto,
+            PorcentajeInteres: porcentajeInteres,
+            MontoTotal: montoTotal,
+            SaldoPendiente: saldoPendiente,
+            ModalidadCobro: modalidadCobro,
+            Estado: estado
+        }, { merge: true });
+
+        return { exito: true, mensaje: "Préstamo actualizado correctamente." };
+    } catch (error) {
+        return { exito: false, mensaje: "Error al actualizar préstamo: " + error.message };
+    }
+}
+
+export async function registrarPago(idPrestamo, montoAbonado) {
+    try {
+        const prestamoRef = doc(db, "Prestamos", idPrestamo);
+        const prestamoSnap = await getDoc(prestamoRef);
+
+        if (!prestamoSnap.exists()) {
+            return { exito: false, mensaje: "El préstamo no existe." };
+        }
+
+        const prestamoData = prestamoSnap.data();
+        let nuevoSaldo = prestamoData.SaldoPendiente - montoAbonado;
+        if (nuevoSaldo < 0) nuevoSaldo = 0;
+        
+        let nuevoEstado = prestamoData.Estado;
+        if (nuevoSaldo === 0) {
+            nuevoEstado = "Pagado";
+        }
+
+        // Actualizar Préstamo
+        await setDoc(prestamoRef, {
+            SaldoPendiente: nuevoSaldo,
+            Estado: nuevoEstado
+        }, { merge: true });
+
+        // Registrar Pago
+        const pagosRef = collection(db, "Pagos");
+        const qMaxId = query(pagosRef, orderBy("Id", "desc"), limit(1));
+        const maxIdSnap = await getDocs(qMaxId);
+        
+        let newId = 1;
+        if (!maxIdSnap.empty) {
+            newId = maxIdSnap.docs[0].data().Id + 1;
+        }
+
+        const newIdStr = newId.toString();
+        const docPagoRef = doc(db, "Pagos", newIdStr);
+        await setDoc(docPagoRef, {
+            Id: newId,
+            IdPrestamo: idPrestamo,
+            MontoAbonado: montoAbonado,
+            FechaPago: new Date().toISOString()
+        });
+
+        return { exito: true, mensaje: "Pago registrado exitosamente." };
+    } catch (error) {
+        return { exito: false, mensaje: "Error al registrar el pago: " + error.message };
+    }
+}
+
+export async function obtenerPagosPorPrestamo(idPrestamo) {
+    try {
+        const pagosRef = collection(db, "Pagos");
+        const q = query(pagosRef, where("IdPrestamo", "==", idPrestamo));
+        const querySnapshot = await getDocs(q);
+        
+        let pagos = [];
+        querySnapshot.forEach((doc) => {
+            pagos.push({ idDocumento: doc.id, ...doc.data() });
+        });
+        
+        return { exito: true, datos: pagos, mensaje: "Pagos cargados exitosamente." };
+    } catch (error) {
+        return { exito: false, datos: null, mensaje: "Error al cargar pagos: " + error.message };
+    }
+}
