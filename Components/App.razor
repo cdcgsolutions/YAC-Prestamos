@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="@Assets["MudApp.styles.css"]" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -23,8 +24,8 @@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     
-    <!-- Scripts para Toastr -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         window.AlertsToastr = (tipo, mensaje, titulo) => {
@@ -32,7 +33,7 @@
                 "closeButton": true,
                 "progressBar": true,
                 "positionClass": "toast-top-right",
-                "timeOut": "5000"
+                "timeOut": "1500"
             };
             if (tipo === "success") toastr.success(mensaje, titulo);
             if (tipo === "error") toastr.error(mensaje, titulo);
@@ -43,7 +44,6 @@
             toastr.clear();
         };
 
-        // Funciones de Manejo de Sesión
         window.sesion = {
             guardar: (uid) => localStorage.setItem("usuario_yac", uid),
             obtener: () => localStorage.getItem("usuario_yac"),

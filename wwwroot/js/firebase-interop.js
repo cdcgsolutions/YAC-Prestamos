@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDaP_TgQiyR7EQFS2zVvSnumASUaNaP5SQ",
@@ -16,7 +16,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-// Función para iniciar sesión buscando en Firestore
 export async function loginWithEmail(email, password) {
     try {
         const usersRef = collection(db, "Usuarios");
@@ -42,34 +41,58 @@ export async function loginWithEmail(email, password) {
     }
 }
 
-// Función para registrar un nuevo usuario en Firestore
-export async function registrarUsuario(nombre, email, password, habilitado) {
+export async function registrarUsuario(nombre, email, password, habilitado, idRol) {
     try {
-        // Verificar si el correo ya existe
         const usersRef = collection(db, "Usuarios");
-        const q = query(usersRef, where("CorreoElectronico", "==", email));
-        const querySnapshot = await getDocs(q);
+        const qEmail = query(usersRef, where("CorreoElectronico", "==", email));
+        const emailSnap = await getDocs(qEmail);
         
-        if (!querySnapshot.empty) {
+        if (!emailSnap.empty) {
             return { exito: false, mensaje: "Este correo electrónico ya está registrado." };
         }
 
-        // Insertar nuevo documento
-        const docRef = await addDoc(usersRef, {
+        const qMaxId = query(usersRef, orderBy("Id", "desc"), limit(1));
+        const maxIdSnap = await getDocs(qMaxId);
+        
+        let newId = 1;
+        if (!maxIdSnap.empty) {
+            newId = maxIdSnap.docs[0].data().Id + 1;
+        }
+
+        const newIdStr = newId.toString();
+        const docRef = doc(db, "Usuarios", newIdStr);
+        await setDoc(docRef, {
+            Id: newId,
             NombreUsuario: nombre,
             CorreoElectronico: email,
             Contrasena: password,
             EstaHabilitado: habilitado,
+            IdRol: idRol,
             FechaCreacion: new Date().toISOString()
         });
 
-        return { exito: true, uid: docRef.id, mensaje: "Usuario creado exitosamente." };
+        return { exito: true, uid: newIdStr, mensaje: "Usuario creado exitosamente." };
     } catch (error) {
         return { exito: false, uid: null, mensaje: "Error al registrar: " + error.message };
     }
 }
 
-// Función para obtener los datos de un usuario por su UID
+export async function obtenerRoles() {
+    try {
+        const rolesRef = collection(db, "Roles");
+        const querySnapshot = await getDocs(rolesRef);
+        
+        let roles = [];
+        querySnapshot.forEach((doc) => {
+            roles.push({ idDocumento: doc.id, ...doc.data() });
+        });
+        
+        return { exito: true, datos: roles, mensaje: "Roles cargados exitosamente." };
+    } catch (error) {
+        return { exito: false, datos: null, mensaje: "Error al cargar roles: " + error.message };
+    }
+}
+
 export async function obtenerUsuario(uid) {
     try {
         const userRef = doc(db, "Usuarios", uid);
@@ -82,5 +105,107 @@ export async function obtenerUsuario(uid) {
         }
     } catch (error) {
         return { exito: false, datos: null, mensaje: "Error al buscar: " + error.message };
+    }
+}
+
+export async function obtenerUsuarios() {
+    try {
+        const usersRef = collection(db, "Usuarios");
+        const querySnapshot = await getDocs(usersRef);
+        
+        let users = [];
+        querySnapshot.forEach((doc) => {
+            users.push({ idDocumento: doc.id, ...doc.data() });
+        });
+        
+        return { exito: true, datos: users, mensaje: "Usuarios cargados exitosamente." };
+    } catch (error) {
+        return { exito: false, datos: null, mensaje: "Error al cargar usuarios: " + error.message };
+    }
+}
+
+export async function actualizarUsuario(idDocumento, nombre, email, password, habilitado, idRol) {
+    try {
+        const docRef = doc(db, "Usuarios", idDocumento);
+        await setDoc(docRef, {
+            Id: parseInt(idDocumento),
+            NombreUsuario: nombre,
+            CorreoElectronico: email,
+            Contrasena: password,
+            EstaHabilitado: habilitado,
+            IdRol: idRol
+        }, { merge: true });
+
+        return { exito: true, mensaje: "Usuario actualizado correctamente." };
+    } catch (error) {
+        return { exito: false, mensaje: "Error al actualizar: " + error.message };
+    }
+}
+
+export async function registrarCliente(nombre, fechaNacimiento, estadoCivil, direccion, celular, correo) {
+    try {
+        const clientesRef = collection(db, "Clientes");
+        
+        const qMaxId = query(clientesRef, orderBy("Id", "desc"), limit(1));
+        const maxIdSnap = await getDocs(qMaxId);
+        
+        let newId = 1;
+        if (!maxIdSnap.empty) {
+            newId = maxIdSnap.docs[0].data().Id + 1;
+        }
+
+        const newIdStr = newId.toString();
+        const docRef = doc(db, "Clientes", newIdStr);
+        await setDoc(docRef, {
+            Id: newId,
+            Nombre: nombre,
+            FechaNacimiento: fechaNacimiento,
+            EstadoCivil: estadoCivil,
+            Direccion: direccion,
+            Celular: celular,
+            Correo: correo,
+            FechaRegistro: new Date().toISOString(),
+            EstaHabilitado: true
+        });
+
+        return { exito: true, uid: newIdStr, mensaje: "Cliente registrado exitosamente." };
+    } catch (error) {
+        return { exito: false, uid: null, mensaje: "Error al registrar cliente: " + error.message };
+    }
+}
+
+export async function obtenerClientes() {
+    try {
+        const clientesRef = collection(db, "Clientes");
+        const querySnapshot = await getDocs(clientesRef);
+        
+        let clientes = [];
+        querySnapshot.forEach((doc) => {
+            clientes.push({ idDocumento: doc.id, ...doc.data() });
+        });
+        
+        return { exito: true, datos: clientes, mensaje: "Clientes cargados exitosamente." };
+    } catch (error) {
+        return { exito: false, datos: null, mensaje: "Error al cargar clientes: " + error.message };
+    }
+}
+
+export async function actualizarCliente(idDocumento, nombre, fechaNacimiento, estadoCivil, direccion, celular, correo, estaHabilitado) {
+    try {
+        const docRef = doc(db, "Clientes", idDocumento);
+        await setDoc(docRef, {
+            Id: parseInt(idDocumento),
+            Nombre: nombre,
+            FechaNacimiento: fechaNacimiento,
+            EstadoCivil: estadoCivil,
+            Direccion: direccion,
+            Celular: celular,
+            Correo: correo,
+            EstaHabilitado: estaHabilitado
+        }, { merge: true });
+
+        return { exito: true, mensaje: "Cliente actualizado correctamente." };
+    } catch (error) {
+        return { exito: false, mensaje: "Error al actualizar cliente: " + error.message };
     }
 }

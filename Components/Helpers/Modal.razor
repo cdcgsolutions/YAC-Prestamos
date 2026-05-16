@@ -1,0 +1,84 @@
+@inject IJSRuntime JSRuntime
+
+<div class="modal fade" id="@id" data-bs-backdrop="@backdrop" data-bs-keyboard="@keyboard" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog @(centered == true ? "modal-dialog-centered " : " ")  @_sizeModal ">
+        <div class="modal-content" style="background-color: var(--mud-palette-surface); color: var(--mud-palette-text-primary); border-radius: 15px;">
+            @if (headerVisible)
+            {
+                <div class="modal-header d-flex justify-content-between py-4 px-6" style="border-bottom: 1px solid var(--mud-palette-divider);">
+
+                    @if (showTitle)
+                    {
+                        <h5 class="modal-title" id="exampleModalLabel" style="font-weight: bold; color: var(--mud-palette-success);">@titulo</h5>
+                    }
+
+                    <div class="ms-auto">
+                        <button type="button" class="btn p-0 fs-1" style="width:fit-content; color:var(--mud-palette-text-primary); border: none !important" @onclick="async ()=>{ await onCerrar.InvokeAsync();}" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+
+                </div>
+            }
+
+            <div class="modal-body p-6" style="height:fit-content">
+                @ChildContent
+            </div>
+            @if (footerVisible)
+            {
+                <div class="modal-footer px-6 py-4" style="border-top: 1px solid var(--mud-palette-divider);">
+                    <button type="button" class="btn btn-secondary rounded-lg" @onclick="async ()=>{ await onCerrar.InvokeAsync();}" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-lg" style="background-color: var(--mud-palette-success); border: none;" @onclick="async ()=>{ await onSubmit.InvokeAsync();}">Guardar</button>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string id { get; set; } = "componenteModal";
+    [Parameter] public string titulo { get; set; } = "Titulo";
+    [Parameter] public SizeModal? sizeModal { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback onCerrar { get; set; }
+    [Parameter] public EventCallback onSubmit { get; set; }
+    [Parameter] public bool footerVisible { get; set; } = false;
+    [Parameter] public bool headerVisible { get; set; } = true;
+    [Parameter] public bool centered { get; set; } = false;
+    [Parameter] public bool showTitle { get; set; } = true;
+    [Parameter] public bool? bloquearCerrar { get; set; } = false;
+
+    private string _sizeModal
+    {
+        get
+        {
+            switch (sizeModal)
+            {
+                case SizeModal.small:
+                    return "modal-sm";
+                case SizeModal.large:
+                    return "modal-lg";
+                case SizeModal.extralarge:
+                    return "modal-xl";
+                default:
+                    return "";
+            }
+        }
+    }
+
+    public string keyboard => bloquearCerrar == false ? "true" : "false";
+    public string backdrop => bloquearCerrar == false ? "true" : "static";
+
+    public async Task AbrirModal()
+    {
+        var js = $"var myModal = new bootstrap.Modal(document.getElementById('{id}'), {{ keyboard: {keyboard}, backdrop: '{backdrop}' }}); myModal.show();";
+        await JSRuntime.InvokeVoidAsync("eval", js);
+    }
+
+    public async Task CerrarModal()
+    {
+        var js = $"var modalEl = document.getElementById('{id}'); var modal = bootstrap.Modal.getInstance(modalEl); if(modal) modal.hide();";
+        await JSRuntime.InvokeVoidAsync("eval", js);
+    }
+}

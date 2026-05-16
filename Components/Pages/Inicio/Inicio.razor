@@ -1,26 +1,21 @@
 @page "/inicio"
-@layout EmptyLayout
+@layout MainLayout
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 @inject MudApp.Components.Helpers.UserSession Session
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Inicio</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     <MudGrid>
         <MudItem xs="12">
             <MudPaper Elevation="4" Class="pa-6 rounded-xl mud-theme-success" Style="color: white;">
-                <div class="d-flex justify-space-between align-center">
-                    <div class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Class="mr-4"/>
-                        <div>
-                            <MudText Typo="Typo.h4" Style="font-weight: bold;">Bienvenido al Sistema YAC-Prestamos</MudText>
-                            <MudText Typo="Typo.subtitle1">Has iniciado sesión correctamente y estás dentro del panel de control.</MudText>
-                        </div>
+                <div class="d-flex align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Class="mr-4"/>
+                    <div>
+                        <MudText Typo="Typo.h4" Style="font-weight: bold;">Bienvenido al Sistema YAC-Prestamos</MudText>
+                        <MudText Typo="Typo.subtitle1">Has iniciado sesión correctamente y estás dentro del panel de control.</MudText>
                     </div>
-                    <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Logout" OnClick="CerrarSesion">
-                        Cerrar Sesión
-                    </MudButton>
                 </div>
             </MudPaper>
         </MudItem>
@@ -56,19 +51,9 @@
 @code {
     protected override void OnInitialized()
     {
-        // Protección de ruta estricta (cero parpadeos)
         if (!Session.IsAuthenticated)
         {
             NavigationManager.NavigateTo("/", replace: true);
         }
-    }
-
-    private async Task CerrarSesion()
-    {
-        // Borrar credenciales de C# y del navegador
-        Session.ClearSession();
-        await JS.InvokeVoidAsync("window.sesion.cerrar");
-        
-        NavigationManager.NavigateTo("/", replace: true);
     }
 }

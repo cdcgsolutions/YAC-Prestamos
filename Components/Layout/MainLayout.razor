@@ -1,12 +1,55 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider Theme="_miTemaVerde" @bind-IsDarkMode="_isDarkMode" DefaultScrollbar="true" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
 <MudLayout>
-    <MudMainContent>
+    <MudAppBar Elevation="0" Color="Color.Transparent" Dense="true" Class="mud-theme-background">
+        <MudIconButton Icon="@(_drawerOpen ? Icons.Material.Filled.Close : Icons.Material.Filled.Menu)" 
+                       Color="Color.Primary" 
+                       Edge="Edge.Start" 
+                       OnClick="@((e) => DrawerToggle())" 
+                       Style="@($"transition: transform 0.3s ease-in-out; transform: {(_drawerOpen ? "rotate(180deg)" : "rotate(0deg)")}; stroke-width: 2px; stroke: currentColor;")" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Responsive">
+        <NavMenu @bind-IsDarkMode="_isDarkMode" />
+    </MudDrawer>
+    
+    <MudMainContent Class="mud-theme-background pt-2">
         @Body
     </MudMainContent>
 </MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDarkMode;
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+    private MudTheme _miTemaVerde = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.Green.Darken1,
+            Secondary = Colors.Green.Accent4,
+            AppbarBackground = Colors.Green.Darken3,
+            DrawerBackground = Colors.Gray.Lighten5,
+            Success = Colors.Green.Default,
+            TextPrimary = Colors.Gray.Darken4
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Green.Lighten1,
+            Secondary = Colors.Green.Accent2,
+            AppbarBackground = Colors.Gray.Darken4,
+            DrawerBackground = Colors.Gray.Darken4,
+            Success = Colors.Green.Lighten1,
+            TextPrimary = Colors.Shades.White
+        }
+    };
+}

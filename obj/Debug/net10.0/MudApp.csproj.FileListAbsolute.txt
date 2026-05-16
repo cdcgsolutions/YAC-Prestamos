@@ -90,4 +90,4 @@ C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\Mud
 C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\MudApp.genruntimeconfig.cache
 C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\ref\MudApp.dll
 C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\MudApp.sourcelink.json
-C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\compressed\njprnn88ep-{0}-kebkr1dxzb-kebkr1dxzb.gz
+C:\Users\danie\OneDrive\Desktop\Sistema de Registro\MudApp\obj\Debug\net10.0\compressed\njprnn88ep-{0}-bdtfgmmgsr-bdtfgmmgsr.gz

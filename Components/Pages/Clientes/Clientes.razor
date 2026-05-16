@@ -1,0 +1,176 @@
+@page "/clientes"
+@layout MudApp.Components.Layout.MainLayout
+@inject MudApp.Components.Services.FirebaseService Firebase
+@inject NavigationManager NavigationManager
+@inject MudApp.Components.Helpers.IMensajeToastr Toastr
+@inject MudApp.Components.Helpers.UserSession Session
+
+<PageTitle>Gestión de Clientes</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-6" Color="Color.Success" Style="font-weight: bold;">Gestión de Clientes</MudText>
+
+    <MudTable Items="@_filteredClientes.Skip((_currentPage - 1) * _itemsPerPage).Take(_itemsPerPage)" Loading="@cargando" Dense="true" Hover="true" Bordered="false" Striped="true" Elevation="4" Class="rounded-xl overflow-hidden">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Lista de Clientes</MudText>
+            <MudSpacer />
+            <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Value="@searchString" Placeholder="Buscar cliente..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true" AutoComplete="off"></MudTextField>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" OnClick="NuevoCliente" Class="rounded-lg px-6">Nuevo Cliente</MudButton>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Nombre Completo</MudTh>
+            <MudTh>F. Nacimiento</MudTh>
+            <MudTh>Estado Civil</MudTh>
+            <MudTh>Dirección</MudTh>
+            <MudTh>Celular</MudTh>
+            <MudTh>Correo</MudTh>
+            <MudTh>Estado</MudTh>
+            <MudTh Style="text-align:center">Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Nombre Completo">@context.Nombre</MudTd>
+            <MudTd DataLabel="F. Nacimiento">@(context.FechaNacimiento?.ToString("dd/MM/yyyy") ?? "N/A")</MudTd>
+            <MudTd DataLabel="Estado Civil">@context.EstadoCivil</MudTd>
+            <MudTd DataLabel="Dirección">@context.Direccion</MudTd>
+            <MudTd DataLabel="Celular">@context.Celular</MudTd>
+            <MudTd DataLabel="Correo">@context.Correo</MudTd>
+            <MudTd DataLabel="Estado">
+                <MudChip T="string" Color="@(context.EstaHabilitado ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Text">
+                    @(context.EstaHabilitado ? "Habilitado" : "Deshabilitado")
+                </MudChip>
+            </MudTd>
+            <MudTd Style="text-align:center">
+                <div class="d-flex justify-center gap-2">
+                    <MudTooltip Text="Editar">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small" OnClick="@(() => EditarCliente(context))" />
+                    </MudTooltip>
+                    <MudTooltip Text="@(context.EstaHabilitado ? "Eliminar (Deshabilitar)" : "Restaurar (Habilitar)")">
+                        <MudIconButton Icon="@(context.EstaHabilitado ? Icons.Material.Filled.Delete : Icons.Material.Filled.RestoreFromTrash)" 
+                                       Color="@(context.EstaHabilitado ? Color.Error : Color.Success)" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => ToggleEstado(context))" />
+                    </MudTooltip>
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No se encontraron clientes.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Cargando clientes...</MudText>
+        </LoadingContent>
+    </MudTable>
+
+    <div class="d-flex justify-center mt-6">
+        <MudPagination Color="Color.Success" SelectedChanged="PageChanged" Count="@_pageCount" Selected="@_currentPage" Class="pa-4"/>
+    </div>
+</MudContainer>
+
+<Modal @ref="@modal" id="modalCliente" bloquearCerrar="true" titulo="@(clienteSeleccionado == null ? "Nuevo Cliente" : "Editar Cliente")" sizeModal="SizeModal.large">
+    <ModalCreacionEdicionClientes 
+        cliente="clienteSeleccionado" 
+        onGuardar="async () => { await modal.CerrarModal(); await CargarDatos(); }">
+    </ModalCreacionEdicionClientes>
+</Modal>
+
+@code {
+    private List<MudApp.Components.DTOs.ClienteDTO> clientes = new();
+    private bool cargando = true;
+    private string searchString = "";
+    
+    private int _currentPage = 1;
+    private int _itemsPerPage = 10;
+    private IEnumerable<MudApp.Components.DTOs.ClienteDTO> _filteredClientes => clientes.Where(c => FilterFunc(c, searchString));
+    private int _pageCount => (int)Math.Ceiling((double)_filteredClientes.Count() / _itemsPerPage);
+
+    private Modal modal = new();
+    private MudApp.Components.DTOs.ClienteDTO? clienteSeleccionado;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+            return;
+        }
+
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        cargando = true;
+        try
+        {
+            var resClientes = await Firebase.ObtenerClientesAsync();
+            if (resClientes != null && resClientes.Exito && resClientes.Datos != null)
+            {
+                clientes = resClientes.Datos.OrderBy(c => c.Id).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error al cargar datos: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        _currentPage = 1;
+    }
+
+    private void PageChanged(int i)
+    {
+        _currentPage = i;
+    }
+
+    private bool FilterFunc(MudApp.Components.DTOs.ClienteDTO element, string search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return true;
+        if (element.Nombre.Contains(search, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Correo.Contains(search, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Celular.Contains(search, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async Task NuevoCliente()
+    {
+        clienteSeleccionado = null;
+        await modal.AbrirModal();
+    }
+
+    private async Task EditarCliente(MudApp.Components.DTOs.ClienteDTO cliente)
+    {
+        clienteSeleccionado = cliente;
+        await modal.AbrirModal();
+    }
+
+    private async Task ToggleEstado(MudApp.Components.DTOs.ClienteDTO cliente)
+    {
+        cliente.EstaHabilitado = !cliente.EstaHabilitado;
+        var result = await Firebase.ActualizarClienteAsync(cliente.IdDocumento, cliente.Nombre, cliente.FechaNacimiento, cliente.EstadoCivil, cliente.Direccion, cliente.Celular, cliente.Correo, cliente.EstaHabilitado);
+        
+        if (result.Exito)
+        {
+            await Toastr.MostrarMensajeExitoso(cliente.EstaHabilitado ? "Cliente restaurado" : "Cliente eliminado");
+            StateHasChanged();
+        }
+        else
+        {
+            cliente.EstaHabilitado = !cliente.EstaHabilitado;
+            await Toastr.MostrarMensajeError("No se pudo actualizar el estado: " + result.Mensaje);
+        }
+    }
+}

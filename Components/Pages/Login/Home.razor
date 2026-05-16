@@ -1,9 +1,12 @@
 @page "/"
 @layout EmptyLayout
 @inject IJSRuntime JS
+@inject FirebaseService Firebase
 @inject IMensajeToastr Toastr
 @inject NavigationManager NavigationManager
 @inject MudApp.Components.Helpers.UserSession Session
+
+<PageTitle>Login</PageTitle>
 
 <div class="d-flex justify-center align-center mud-width-full mud-background-gray" style="min-height: 100vh; background: var(--mud-palette-background);">
     <MudContainer MaxWidth="MaxWidth.Small" Class="px-4">
@@ -22,12 +25,11 @@
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
                 <MudTextField @bind-Value="contrasena" Label="Contraseña" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="@tipoEntradaContrasena"
                               Adornment="Adornment.End" AdornmentIcon="@iconoEntradaContrasena" OnAdornmentClick="AlternarVisibilidadContrasena" AdornmentAriaLabel="Mostrar contraseña" />
-                <div class="d-flex justify-space-between align-center mt-2 mb-4">
-                    <MudCheckBox T="bool" Label="Recordarme" Color="Color.Success" Dense="true" />
-                    <MudLink Href="#" Typo="Typo.body2" Color="Color.Success">¿Olvidó su contraseña?</MudLink>
+                <div class="d-flex justify-end align-center mt-2 mb-4">
+                    <MudLink Typo="Typo.body2" Color="Color.Success" Style="cursor:pointer" OnClick="MostrarOlvidoContrasena">¿Olvidó su contraseña?</MudLink>
                 </div>
             </MudCardContent>
-            <MudCardActions Class="d-flex flex-column align-stretch px-4 pb-4">
+            <MudCardActions Class="d-flex flex-column align-stretch px-4 pb-4 gap-3">
                 <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Large" Class="rounded-lg py-2" OnClick="IniciarSesion" Disabled="@cargando">
                     @if (cargando)
                     {
@@ -53,8 +55,6 @@
     private InputType tipoEntradaContrasena = InputType.Password;
     private string iconoEntradaContrasena = Icons.Material.Filled.VisibilityOff;
 
-    private IJSObjectReference? _firebaseModule;
-
     protected override void OnInitialized()
     {
         if (Session.IsAuthenticated)
@@ -76,12 +76,10 @@
                     NavigationManager.NavigateTo("/inicio", replace: true);
                     return;
                 }
-
-                _firebaseModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/firebase-interop.js");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error cargando Firebase: " + ex.Message);
+                Console.WriteLine("Error al recuperar sesión: " + ex.Message);
             }
         }
     }
@@ -109,21 +107,15 @@
             return;
         }
 
-        if (_firebaseModule == null)
-        {
-            await Toastr.MostrarMensajeErrorWithTitle("Firebase no ha terminado de cargar.", "Error");
-            return;
-        }
-
         cargando = true;
         StateHasChanged();
 
         bool navigated = false;
         try
         {
-            var result = await _firebaseModule.InvokeAsync<ResultadoLogin>("loginWithEmail", email, contrasena);
+            var result = await Firebase.LoginAsync(email, contrasena);
 
-            if (result != null && result.Exito)
+            if (result != null && result.Exito && result.Uid != null)
             {
                 Session.SetSession(result.Uid);
                 await JS.InvokeVoidAsync("window.sesion.guardar", result.Uid);
@@ -152,4 +144,8 @@
         }
     }
 
+    private async Task MostrarOlvidoContrasena()
+    {
+        await Toastr.MostrarMensajeInfoWithTitle("Contacte con un administrador para restablecer su contraseña.", "Recuperación de Contraseña");
+    }
 }

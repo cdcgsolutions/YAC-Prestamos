@@ -1,0 +1,135 @@
+<div class="pa-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="nombre" Label="Nombre Completo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="direccion" Label="Dirección" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Home" />
+        </MudItem>
+        
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="correo" Label="Correo Electrónico" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="celular" Label="Nro Celular" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+        </MudItem>
+        
+        <MudItem xs="12" sm="6">
+            <MudDatePicker @bind-Date="fechaNacimiento" Label="Fecha de Nacimiento" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                           AdornmentColor="Color.Success" DateFormat="dd/MM/yyyy" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string" @bind-Value="estadoCivil" Label="Estado Civil" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem Value="@("Soltero(a)")">Soltero(a)</MudSelectItem>
+                <MudSelectItem Value="@("Casado(a)")">Casado(a)</MudSelectItem>
+                <MudSelectItem Value="@("Divorciado(a)")">Divorciado(a)</MudSelectItem>
+                <MudSelectItem Value="@("Viudo(a)")">Viudo(a)</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    <div class="d-flex justify-end gap-2 mt-6">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Guardar" Disabled="@cargando" FullWidth="true" Size="Size.Large" Class="rounded-lg">
+            @if (cargando)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando...</MudText>
+            }
+            else
+            {
+                <MudText>@(cliente != null && !string.IsNullOrEmpty(cliente.IdDocumento) ? "Guardar Cambios" : "Crear Cliente")</MudText>
+            }
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ClienteDTO? cliente { get; set; }
+    [Parameter] public EventCallback onGuardar { get; set; }
+
+    private string nombre = "";
+    private DateTime? fechaNacimiento;
+    private string estadoCivil = "";
+    private string direccion = "";
+    private string celular = "";
+    private string correo = "";
+    private bool estaHabilitado = true;
+    private bool cargando = false;
+
+    [Inject] FirebaseService Firebase { get; set; } = default!;
+    [Inject] IMensajeToastr Toastr { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        if (cliente != null)
+        {
+            nombre = cliente.Nombre;
+            fechaNacimiento = cliente.FechaNacimiento;
+            estadoCivil = cliente.EstadoCivil;
+            direccion = cliente.Direccion;
+            celular = cliente.Celular;
+            correo = cliente.Correo;
+            estaHabilitado = cliente.EstaHabilitado;
+        }
+        else
+        {
+            LimpiarCampos();
+        }
+    }
+
+    private void LimpiarCampos()
+    {
+        nombre = "";
+        fechaNacimiento = null;
+        estadoCivil = "";
+        direccion = "";
+        celular = "";
+        correo = "";
+        estaHabilitado = true;
+    }
+
+    private async Task Guardar()
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(estadoCivil) || string.IsNullOrWhiteSpace(celular))
+        {
+            await Toastr.MostrarMensajeWarning("Por favor, llene los campos obligatorios.");
+            return;
+        }
+
+        cargando = true;
+        try
+        {
+            MudApp.Components.Models.ResultadoAccion result;
+            if (cliente != null && !string.IsNullOrEmpty(cliente.IdDocumento))
+            {
+                result = await Firebase.ActualizarClienteAsync(cliente.IdDocumento, nombre, fechaNacimiento, estadoCivil, direccion, celular, correo, estaHabilitado);
+            }
+            else
+            {
+                result = await Firebase.RegistrarClienteAsync(nombre, fechaNacimiento, estadoCivil, direccion, celular, correo);
+            }
+
+            if (result.Exito)
+            {
+                await Toastr.MostrarMensajeExitoso(result.Mensaje ?? "Operación exitosa");
+                await onGuardar.InvokeAsync();
+            }
+            else
+            {
+                await Toastr.MostrarMensajeError(result.Mensaje ?? "Error al procesar");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error inesperado: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

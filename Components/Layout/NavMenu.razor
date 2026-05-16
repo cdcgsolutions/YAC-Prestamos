@@ -1,1 +1,113 @@
-<!-- Componente vacío para satisfacer al compilador -->
+@inject IJSRuntime JS
+@inject FirebaseService Firebase
+@inject NavigationManager NavigationManager
+@inject MudApp.Components.Helpers.UserSession Session
+
+<div class="d-flex flex-column h-100 mud-width-full">
+    <div class="d-flex flex-column align-center justify-center pa-6" style="border-bottom: 1px solid var(--mud-palette-divider);">
+        @if (cargando)
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="64px" Height="64px" Class="mb-3" />
+            <MudSkeleton Width="120px" Height="24px" Class="mb-1" />
+            <MudSkeleton Width="160px" Height="20px" />
+        }
+        else
+        {
+            <MudAvatar Color="Color.Success" Size="Size.Large" Class="mb-3 elevation-2" Style="width: 64px; height: 64px; font-size: 28px;">
+                @iniciales
+            </MudAvatar>
+            <MudText Typo="Typo.h6" Align="Align.Center" Style="font-weight: 600; line-height: 1.2;">@nombreUsuario</MudText>
+            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Success" Class="mt-1">@correoUsuario</MudText>
+        }
+    </div>
+
+    <MudNavMenu Class="mt-4 flex-grow-1">
+        <MudNavLink Href="/inicio" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Success">Inicio</MudNavLink>
+        <MudNavLink Href="/usuarios" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings" IconColor="Color.Default">Gestión de Usuarios</MudNavLink>
+        <MudNavLink Href="/clientes" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" IconColor="Color.Default">Clientes</MudNavLink>
+        <MudNavLink Href="/prestamos" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AttachMoney" IconColor="Color.Default">Préstamos</MudNavLink>
+    </MudNavMenu>
+
+    <div class="px-4 pb-4 mt-auto d-flex justify-center gap-4">
+        <MudTooltip Text="Modo Claro">
+            <MudIconButton Icon="@Icons.Material.Filled.LightMode" 
+                           Color="@(!IsDarkMode ? Color.Warning : Color.Default)" 
+                           Variant="Variant.Outlined"
+                           OnClick="@(() => IsDarkModeChanged.InvokeAsync(false))" />
+        </MudTooltip>
+        <MudTooltip Text="Modo Oscuro">
+            <MudIconButton Icon="@Icons.Material.Filled.DarkMode" 
+                           Color="@(IsDarkMode ? Color.Success : Color.Default)" 
+                           Variant="Variant.Outlined"
+                           OnClick="@(() => IsDarkModeChanged.InvokeAsync(true))" />
+        </MudTooltip>
+    </div>
+
+    <div class="pa-4" style="border-top: 1px solid var(--mud-palette-divider);">
+        <MudText Typo="Typo.caption" Align="Align.Center" Class="d-block mb-3 text-muted"> © @DateTime.Now.Year CDCG Solutions </MudText>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true" StartIcon="@Icons.Material.Filled.Logout" OnClick="CerrarSesion">
+            Cerrar Sesión
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsDarkMode { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsDarkModeChanged { get; set; }
+
+    private string nombreUsuario = "Usuario";
+    private string correoUsuario = "cargando...";
+    private string iniciales = "U";
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Session.IsAuthenticated && !string.IsNullOrEmpty(Session.Uid))
+        {
+            await CargarDatosUsuario(Session.Uid);
+        }
+    }
+
+    private async Task CargarDatosUsuario(string uid)
+    {
+        try
+        {
+            var result = await Firebase.ObtenerUsuarioAsync(uid);
+
+            if (result != null && result.Exito && result.Datos != null)
+            {
+                var dict = result.Datos;
+                
+                if (dict.TryGetValue("NombreUsuario", out var nomObj) && nomObj != null)
+                {
+                    nombreUsuario = nomObj.ToString() ?? "Usuario";
+                    iniciales = !string.IsNullOrWhiteSpace(nombreUsuario) ? nombreUsuario.Substring(0, 1).ToUpper() : "U";
+                }
+                
+                if (dict.TryGetValue("CorreoElectronico", out var correoObj) && correoObj != null)
+                {
+                    correoUsuario = correoObj.ToString() ?? "";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al cargar perfil: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CerrarSesion()
+    {
+        Session.ClearSession();
+        await JS.InvokeVoidAsync("window.sesion.cerrar");
+        NavigationManager.NavigateTo("/", replace: true);
+    }
+}

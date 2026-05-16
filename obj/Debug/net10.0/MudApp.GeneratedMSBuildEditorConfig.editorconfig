@@ -29,28 +29,44 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Helpers/Modal.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xIZWxwZXJzXE1vZGFsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Layout/EmptyLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcRW1wdHlMYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Clientes/Clientes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDbGllbnRlc1xDbGllbnRlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Clientes/ModalCreacionEdicionClientes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDbGllbnRlc1xNb2RhbENyZWFjaW9uRWRpY2lvbkNsaWVudGVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Inicio.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbmljaW8ucmF6b3I=
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Inicio/Inicio.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbmljaW9cSW5pY2lvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Login/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpblxIb21lLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Login/Registro.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpblxSZWdpc3Ryby5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Usuarios/ModalCreacionEdicionUsuarios.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc3Vhcmlvc1xNb2RhbENyZWFjaW9uRWRpY2lvblVzdWFyaW9zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Pages/Usuarios/Usuarios.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc3Vhcmlvc1xVc3Vhcmlvcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/danie/OneDrive/Desktop/Sistema de Registro/MudApp/Components/Routes.razor]

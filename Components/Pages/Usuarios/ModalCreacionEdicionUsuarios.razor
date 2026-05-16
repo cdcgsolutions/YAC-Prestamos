@@ -1,0 +1,168 @@
+@using System.Text.RegularExpressions
+
+<div class="pa-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="nombreUsuario" Label="Nombre Completo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="email" Label="Correo Electrónico" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+        </MudItem>
+        
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="contrasena" Label="Contraseña" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="@tipoEntradaContrasena"
+                          Adornment="Adornment.End" AdornmentIcon="@iconoEntradaContrasena" OnAdornmentClick="AlternarVisibilidadContrasena" AdornmentAriaLabel="Mostrar contraseña" Class="mb-4"/>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="confirmarContrasena" Label="Confirmar Contraseña" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="@tipoEntradaContrasena"
+                          Adornment="Adornment.End" AdornmentIcon="@iconoEntradaContrasena" OnAdornmentClick="AlternarVisibilidadContrasena" AdornmentAriaLabel="Mostrar contraseña" Class="mb-4"/>
+        </MudItem>
+        
+        <MudItem xs="12">
+            <MudSelect T="int" @bind-Value="idRolSeleccionado" Label="Rol de Usuario" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" AnchorOrigin="Origin.BottomCenter" ToStringFunc="@(id => roles.FirstOrDefault(r => r.Id == id)?.Descripcion ?? "Usuario")">
+                @foreach (var rol in roles)
+                {
+                    <MudSelectItem Value="@rol.Id">@rol.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex align-center">
+            @if (usuario != null && !string.IsNullOrEmpty(usuario.IdDocumento))
+            {
+                <MudSwitch T="bool" @bind-Value="estaHabilitado" Color="Color.Success" Label="@(estaHabilitado ? "Usuario Habilitado" : "Usuario Deshabilitado")" />
+            }
+        </MudItem>
+    </MudGrid>
+
+    <div class="d-flex justify-end gap-2 mt-6">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Guardar" Disabled="@cargando" FullWidth="true" Size="Size.Large" Class="rounded-lg">
+            @if (cargando)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Procesando...</MudText>
+            }
+            else
+            {
+                <MudText>@(usuario != null && !string.IsNullOrEmpty(usuario.IdDocumento) ? "Guardar Cambios" : "Crear Usuario")</MudText>
+            }
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public UsuarioDTO? usuario { get; set; }
+    [Parameter] public List<RolDTO> roles { get; set; } = new();
+    [Parameter] public EventCallback onGuardar { get; set; }
+
+    private string nombreUsuario = "";
+    private string email = "";
+    private string contrasena = "";
+    private string confirmarContrasena = "";
+    private bool estaHabilitado = true;
+    private bool cargando = false;
+    private int idRolSeleccionado = 3;
+
+    private bool mostrarContrasena;
+    private InputType tipoEntradaContrasena = InputType.Password;
+    private string iconoEntradaContrasena = Icons.Material.Filled.VisibilityOff;
+
+    [Inject] FirebaseService Firebase { get; set; } = default!;
+    [Inject] IMensajeToastr Toastr { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        if (usuario != null)
+        {
+            nombreUsuario = usuario.NombreUsuario;
+            email = usuario.CorreoElectronico;
+            contrasena = usuario.Contrasena;
+            confirmarContrasena = contrasena;
+            estaHabilitado = usuario.EstaHabilitado;
+            idRolSeleccionado = usuario.IdRol;
+        }
+        else
+        {
+            LimpiarCampos();
+        }
+    }
+
+    private void LimpiarCampos()
+    {
+        nombreUsuario = "";
+        email = "";
+        contrasena = "";
+        confirmarContrasena = "";
+        estaHabilitado = true;
+        idRolSeleccionado = 3;
+    }
+
+    private void AlternarVisibilidadContrasena()
+    {
+        mostrarContrasena = !mostrarContrasena;
+        if (mostrarContrasena)
+        {
+            iconoEntradaContrasena = Icons.Material.Filled.Visibility;
+            tipoEntradaContrasena = InputType.Text;
+        }
+        else
+        {
+            iconoEntradaContrasena = Icons.Material.Filled.VisibilityOff;
+            tipoEntradaContrasena = InputType.Password;
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (string.IsNullOrWhiteSpace(nombreUsuario) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(contrasena))
+        {
+            await Toastr.MostrarMensajeWarning("Por favor, llene todos los campos.");
+            return;
+        }
+
+        if (contrasena != confirmarContrasena)
+        {
+            await Toastr.MostrarMensajeError("Las contraseñas no coinciden.");
+            return;
+        }
+
+        var regexPassword = new Regex(@"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{6,}$");
+        if (!regexPassword.IsMatch(contrasena))
+        {
+            await Toastr.MostrarMensajeWarningWithTitle("La contraseña debe ser alfanumérica y con un carácter especial.", "Contraseña Insegura");
+            return;
+        }
+
+        cargando = true;
+        try
+        {
+            ResultadoAccion result;
+            if (usuario != null && !string.IsNullOrEmpty(usuario.IdDocumento))
+            {
+                result = await Firebase.ActualizarUsuarioAsync(usuario.IdDocumento, nombreUsuario, email, contrasena, estaHabilitado, idRolSeleccionado);
+            }
+            else
+            {
+                result = await Firebase.RegistrarUsuarioAsync(nombreUsuario, email, contrasena, estaHabilitado, idRolSeleccionado);
+            }
+
+            if (result.Exito)
+            {
+                await onGuardar.InvokeAsync();
+            }
+            else
+            {
+                await Toastr.MostrarMensajeError(result.Mensaje ?? "Error al procesar");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toastr.MostrarMensajeError("Error inesperado: " + ex.Message);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

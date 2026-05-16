@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-
 namespace MudApp.Components.Models
 {
-    public class ResultadoUsuario
+    public class ResultadoAccion
     {
         public bool Exito { get; set; }
+        public string? Uid { get; set; }
         public string? Mensaje { get; set; }
-        public Dictionary<string, object>? Datos { get; set; }
     }
 }
