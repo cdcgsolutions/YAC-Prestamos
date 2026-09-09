@@ -44,7 +44,7 @@
   static Abrir({
     Titulo = "Modal",
     ContenidoHTML = "",
-    Tamano = "Normal", // "Normal", "Grande", "Pequeno"
+    Tamano = "Normal", // "Normal", "Grande", "Ancho", "Pequeno"
     AlCerrar = null,
     AlAbrir = null,
     BotonesPieHTML = null
@@ -55,12 +55,13 @@
     const PieEl = document.getElementById("PieModalGlobal");
     const VentanaEl = document.getElementById("VentanaModalInterna");
 
-    TituloEl.textContent = Titulo;
+    TituloEl.innerHTML = Titulo;
     CuerpoEl.innerHTML = ContenidoHTML;
 
-    // Tamaño
+    // Tamano
     VentanaEl.className = "ModalVentana";
     if (Tamano === "Grande") VentanaEl.classList.add("Grande");
+    if (Tamano === "Ancho") VentanaEl.classList.add("Ancho");
     if (Tamano === "Pequeno") VentanaEl.classList.add("Pequeno");
 
     // Pie

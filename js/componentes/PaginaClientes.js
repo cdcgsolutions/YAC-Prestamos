@@ -14,8 +14,8 @@ export class PaginaClientes {
     const HtmlCuerpo = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-          <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primario);">Gestión de Clientes</h2>
-          <p style="color: var(--color-texto-secundario); font-size: 0.9rem;">Registro y administración de prestatarios y cartera de clientes.</p>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-primario);">Gestión de Clientes</h2>
+          <p style="color: var(--color-texto-secundario); font-size: 0.85rem;">Registro y administración de prestatarios y cartera de clientes.</p>
         </div>
         <button class="Boton Boton-Primario" id="BotonNuevoCliente">
           <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
@@ -31,7 +31,8 @@ export class PaginaClientes {
           </div>
         </div>
 
-        <div class="TablaResponsiva">
+        <!-- VISTA TABLA PARA ESCRITORIO -->
+        <div class="VistaTablaEscritorio TablaResponsiva">
           <table class="Tabla">
             <thead>
               <tr>
@@ -55,6 +56,14 @@ export class PaginaClientes {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- VISTA TARJETAS (CARDS) PARA MÓVIL -->
+        <div class="VistaTarjetasMovil" id="ContenedorTarjetasClientesMovil">
+          <div style="text-align: center; padding: 2rem;">
+            <div class="Spinner SpinnerOscuro"></div>
+            <div style="margin-top: 0.5rem; color: var(--color-texto-secundario);">Cargando clientes...</div>
+          </div>
         </div>
       </div>
 
@@ -113,8 +122,9 @@ export class PaginaClientes {
 
   static ActualizarTabla() {
     const CuerpoTabla = document.getElementById("CuerpoTablaClientes");
+    const ContenedorMovil = document.getElementById("ContenedorTarjetasClientesMovil");
     const ContenedorPaginacion = document.getElementById("ContenedorPaginacionClientes");
-    if (!CuerpoTabla) return;
+    if (!CuerpoTabla || !ContenedorMovil) return;
 
     const ClientesFiltrados = this.ListaClientes.filter((c) => {
       if (!this.TextoBusqueda) return true;
@@ -131,14 +141,14 @@ export class PaginaClientes {
     });
 
     if (ClientesFiltrados.length === 0) {
-      CuerpoTabla.innerHTML = `
-        <tr>
-          <td colspan="9" style="text-align: center; padding: 2rem; color: var(--color-texto-atenuado);">
-            <i class="fa-solid fa-users-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
-            No se encontraron clientes registrados.
-          </td>
-        </tr>
+      const VacioHTML = `
+        <div style="text-align: center; padding: 2.5rem; color: var(--color-texto-atenuado);">
+          <i class="fa-solid fa-users-slash" style="font-size: 2.5rem; margin-bottom: 0.5rem; display: block;"></i>
+          No se encontraron clientes registrados.
+        </div>
       `;
+      CuerpoTabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem;">No se encontraron clientes.</td></tr>`;
+      ContenedorMovil.innerHTML = VacioHTML;
       if (ContenedorPaginacion) ContenedorPaginacion.innerHTML = "";
       return;
     }
@@ -149,13 +159,16 @@ export class PaginaClientes {
     const Inicio = (this.PaginaActual - 1) * this.ElementosPorPagina;
     const PaginaElementos = ClientesFiltrados.slice(Inicio, Inicio + this.ElementosPorPagina);
 
-    let FilasHTML = "";
+    let FilasTablaHTML = "";
+    let TarjetasMovilHTML = "";
+
     PaginaElementos.forEach((Cli) => {
       const EstadoBadge = Cli.EstaHabilitado
         ? '<span class="Badge Badge-Habilitado"><i class="fa-solid fa-circle-check"></i> Habilitado</span>'
         : '<span class="Badge Badge-Deshabilitado"><i class="fa-solid fa-ban"></i> Deshabilitado</span>';
 
-      FilasHTML += `
+      // 1. Fila de tabla para escritorio
+      FilasTablaHTML += `
         <tr>
           <td><strong>#${Cli.Id || "-"}</strong></td>
           <td style="font-weight: 600;">${Cli.Nombre || "Sin Nombre"}</td>
@@ -177,9 +190,58 @@ export class PaginaClientes {
           </td>
         </tr>
       `;
+
+      // 2. Tarjeta (Card) para móvil con botón secundario adaptable
+      TarjetasMovilHTML += `
+        <div class="TarjetaRegistroMovil">
+          <div class="CabeceraRegistroMovil">
+            <div>
+              <span class="IdRegistroMovil">#${Cli.Id || "-"}</span>
+              <span class="NombreRegistroMovil">${Cli.Nombre || "Sin Nombre"}</span>
+            </div>
+            <div>
+              ${EstadoBadge}
+            </div>
+          </div>
+
+          <div class="CuerpoRegistroMovil">
+            <div class="ItemDatoMovil">
+              <i class="fa-solid fa-phone"></i>
+              <a href="tel:${Cli.Celular}" style="color: var(--color-primario); font-weight: 600;">${Cli.Celular || "Sin celular"}</a>
+            </div>
+            ${Cli.Direccion ? `
+              <div class="ItemDatoMovil">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>${Cli.Direccion}</span>
+              </div>
+            ` : ""}
+            ${Cli.Correo ? `
+              <div class="ItemDatoMovil">
+                <i class="fa-solid fa-envelope"></i>
+                <span>${Cli.Correo}</span>
+              </div>
+            ` : ""}
+            <div class="ItemDatoMovil" style="font-size: 0.775rem; color: var(--color-texto-atenuado);">
+              <i class="fa-solid fa-user"></i>
+              <span>${Cli.EstadoCivil || "Estado Civil N/A"} | Nac: ${this.FormatearFecha(Cli.FechaNacimiento)}</span>
+            </div>
+          </div>
+
+          <div class="AccionesRegistroMovil">
+            <button class="Boton Boton-Secundario Boton-Sm" data-id="${Cli.IdDocumento}">
+              <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
+            </button>
+            <button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${Cli.IdDocumento}">
+              <i class="fa-solid ${Cli.EstaHabilitado ? "fa-trash" : "fa-trash-can-arrow-up"}" style="color: ${Cli.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
+              ${Cli.EstaHabilitado ? "Eliminar" : "Restaurar"}
+            </button>
+          </div>
+        </div>
+      `;
     });
 
-    CuerpoTabla.innerHTML = FilasHTML;
+    CuerpoTabla.innerHTML = FilasTablaHTML;
+    ContenedorMovil.innerHTML = TarjetasMovilHTML;
 
     // Paginación
     if (ContenedorPaginacion) {
@@ -193,49 +255,54 @@ export class PaginaClientes {
       });
     }
 
-    // Botones de acción
-    CuerpoTabla.querySelectorAll(".Boton-Icono.Editar").forEach((Boton) => {
-      Boton.addEventListener("click", () => {
-        const DocId = Boton.dataset.id;
-        const Cli = this.ListaClientes.find((c) => c.IdDocumento === DocId);
-        if (Cli) {
-          ModalCliente.Abrir({
-            Cliente: Cli,
-            AlGuardar: () => this.CargarDatos()
-          });
-        }
-      });
-    });
-
-    CuerpoTabla.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
-      Boton.addEventListener("click", async () => {
-        const DocId = Boton.dataset.toggleId;
-        const Cli = this.ListaClientes.find((c) => c.IdDocumento === DocId);
-        if (Cli) {
-          const NuevoEstado = !Cli.EstaHabilitado;
-          try {
-            const Resp = await ServicioFirebase.ActualizarCliente(
-              Cli.IdDocumento,
-              Cli.Nombre,
-              Cli.FechaNacimiento,
-              Cli.EstadoCivil,
-              Cli.Direccion,
-              Cli.Celular,
-              Cli.Correo,
-              NuevoEstado
-            );
-            if (Resp.Exito) {
-              Cli.EstaHabilitado = NuevoEstado;
-              ServicioNotificaciones.MostrarExito(NuevoEstado ? "Cliente restaurado." : "Cliente deshabilitado.");
-              this.ActualizarTabla();
-            } else {
-              ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
-            }
-          } catch (Err) {
-            ServicioNotificaciones.MostrarError("Error: " + Err.message);
+    // Asignar eventos de botones
+    const AsignarEventosBotones = (Contenedor) => {
+      Contenedor.querySelectorAll("[data-id]").forEach((Boton) => {
+        Boton.addEventListener("click", () => {
+          const DocId = Boton.dataset.id;
+          const Cli = this.ListaClientes.find((c) => c.IdDocumento === DocId);
+          if (Cli) {
+            ModalCliente.Abrir({
+              Cliente: Cli,
+              AlGuardar: () => this.CargarDatos()
+            });
           }
-        }
+        });
       });
-    });
+
+      Contenedor.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
+        Boton.addEventListener("click", async () => {
+          const DocId = Boton.dataset.toggleId;
+          const Cli = this.ListaClientes.find((c) => c.IdDocumento === DocId);
+          if (Cli) {
+            const NuevoEstado = !Cli.EstaHabilitado;
+            try {
+              const Resp = await ServicioFirebase.ActualizarCliente(
+                Cli.IdDocumento,
+                Cli.Nombre,
+                Cli.FechaNacimiento,
+                Cli.EstadoCivil,
+                Cli.Direccion,
+                Cli.Celular,
+                Cli.Correo,
+                NuevoEstado
+              );
+              if (Resp.Exito) {
+                Cli.EstaHabilitado = NuevoEstado;
+                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Cliente restaurado." : "Cliente deshabilitado.");
+                this.ActualizarTabla();
+              } else {
+                ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
+              }
+            } catch (Err) {
+              ServicioNotificaciones.MostrarError("Error: " + Err.message);
+            }
+          }
+        });
+      });
+    };
+
+    AsignarEventosBotones(CuerpoTabla);
+    AsignarEventosBotones(ContenedorMovil);
   }
 }

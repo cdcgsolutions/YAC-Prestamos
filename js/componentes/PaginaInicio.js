@@ -3,77 +3,114 @@ import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
 
 export class PaginaInicio {
   static async Renderizar() {
+    const FechaHoy = new Date().toLocaleDateString("es-ES", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+    const FechaCapitalizada = FechaHoy.charAt(0).toUpperCase() + FechaHoy.slice(1);
+
     const HtmlCuerpo = `
-      <!-- BANNER DE BIENVENIDA -->
-      <div class="BannerBienvenida">
-        <div class="BannerIcono">
-          <i class="fa-solid fa-chart-line"></i>
-        </div>
-        <div>
-          <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">Bienvenido al Sistema YAC-Préstamos</h2>
-          <p style="opacity: 0.95; font-size: 0.95rem;">Panel de control financiero y monitoreo en tiempo real.</p>
-        </div>
-      </div>
-
-      <!-- GRID DE MÉTRICAS -->
-      <div class="GridMetricas">
-        <div class="TarjetaMetrica">
-          <div class="IconoMetrica Verde">
-            <i class="fa-solid fa-users"></i>
+      <div class="ContenedorInicioCompacto">
+        
+        <!-- BANNER ELEGANTE Y COMPACTO -->
+        <div class="BannerInicioCompacto">
+          <div class="BannerInfoIzquierda">
+            <div class="BannerBadgeFecha">
+              <i class="fa-regular fa-calendar-check"></i> ${FechaCapitalizada}
+            </div>
+            <h2 class="BannerTituloCompacto">YAC-Préstamos</h2>
+            <p class="BannerSubtituloCompacto">Resumen financiero y estado de cartera en tiempo real</p>
           </div>
-          <div>
-            <div class="ValorMetrica" id="MetricaClientesActivos">0</div>
-            <div class="TituloMetrica">Clientes Activos</div>
+          <div class="BannerIconoCompacto">
+            <i class="fa-solid fa-vault"></i>
           </div>
         </div>
 
-        <div class="TarjetaMetrica">
-          <div class="IconoMetrica Azul">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
+        <!-- BARRA DE ACCESOS RÁPIDOS COMPACTA -->
+        <div class="ContenedorAccesosRapidosSleek">
+          <div class="EtiquetaSeccionAccesos">
+            <i class="fa-solid fa-bolt" style="color: var(--color-advertencia);"></i>
+            <span>Accesos Rápidos:</span>
           </div>
-          <div>
-            <div class="ValorMetrica" id="MetricaPrestamosActivos">0</div>
-            <div class="TituloMetrica">Préstamos Activos</div>
+          <div class="ListaPillsAccesos">
+            <a href="#prestamos" class="PillAcceso Verde">
+              <i class="fa-solid fa-plus"></i>
+              <span>Nuevo Préstamo</span>
+            </a>
+            <a href="#clientes" class="PillAcceso Azul">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Registrar Cliente</span>
+            </a>
+            <a href="#prestamos" class="PillAcceso Amarillo">
+              <i class="fa-solid fa-receipt"></i>
+              <span>Cobranzas y Pagos</span>
+            </a>
+            <a href="#usuarios" class="PillAcceso Morado">
+              <i class="fa-solid fa-users-gear"></i>
+              <span>Usuarios</span>
+            </a>
           </div>
         </div>
 
-        <div class="TarjetaMetrica">
-          <div class="IconoMetrica Amarillo">
-            <i class="fa-solid fa-sack-dollar"></i>
+        <!-- GRID DE KPIS / MÉTRICAS COMPACTAS -->
+        <div class="GridKpisCompacto">
+          
+          <div class="TarjetaKpiCompacta Verde">
+            <div class="KpiEncabezado">
+              <span class="KpiEtiqueta">Clientes Activos</span>
+              <div class="KpiIconoContenedor Verde">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            </div>
+            <div class="KpiValor" id="MetricaClientesActivos">0</div>
+            <div class="KpiPie">
+              <i class="fa-solid fa-circle-check"></i> Clientes habilitados
+            </div>
           </div>
-          <div>
-            <div class="ValorMetrica" id="MetricaMontoPrestado">Bs. 0.00</div>
-            <div class="TituloMetrica">Total Prestado</div>
+
+          <div class="TarjetaKpiCompacta Azul">
+            <div class="KpiEncabezado">
+              <span class="KpiEtiqueta">Préstamos Activos</span>
+              <div class="KpiIconoContenedor Azul">
+                <i class="fa-solid fa-file-contract"></i>
+              </div>
+            </div>
+            <div class="KpiValor" id="MetricaPrestamosActivos">0</div>
+            <div class="KpiPie">
+              <i class="fa-solid fa-arrows-rotate"></i> En amortización
+            </div>
           </div>
+
+          <div class="TarjetaKpiCompacta Amarillo">
+            <div class="KpiEncabezado">
+              <span class="KpiEtiqueta">Total Prestado (Capital)</span>
+              <div class="KpiIconoContenedor Amarillo">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+            </div>
+            <div class="KpiValor" id="MetricaMontoPrestado">Bs. 0.00</div>
+            <div class="KpiPie">
+              <i class="fa-solid fa-coins"></i> Capital colocado
+            </div>
+          </div>
+
+          <div class="TarjetaKpiCompacta Rojo">
+            <div class="KpiEncabezado">
+              <span class="KpiEtiqueta">Saldo Pendiente</span>
+              <div class="KpiIconoContenedor Rojo">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+            </div>
+            <div class="KpiValor" id="MetricaSaldoPendiente">Bs. 0.00</div>
+            <div class="KpiPie">
+              <i class="fa-solid fa-clock"></i> Por recuperar
+            </div>
+          </div>
+
         </div>
 
-        <div class="TarjetaMetrica">
-          <div class="IconoMetrica Rojo">
-            <i class="fa-solid fa-hand-holding-dollar"></i>
-          </div>
-          <div>
-            <div class="ValorMetrica" id="MetricaSaldoPendiente">Bs. 0.00</div>
-            <div class="TituloMetrica">Saldo Pendiente</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TARJETA DE ACCESO RÁPIDO -->
-      <div class="Tarjeta">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-texto-primario);">
-          <i class="fa-solid fa-bolt" style="color: var(--color-advertencia); margin-right: 0.5rem;"></i> Accesos Rápidos
-        </h3>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-          <a href="#prestamos" class="Boton Boton-Primario">
-            <i class="fa-solid fa-plus"></i> Gestionar Préstamos
-          </a>
-          <a href="#clientes" class="Boton Boton-Secundario">
-            <i class="fa-solid fa-user-plus"></i> Registrar Cliente
-          </a>
-          <a href="#usuarios" class="Boton Boton-Secundario">
-            <i class="fa-solid fa-users-gear"></i> Administrar Usuarios
-          </a>
-        </div>
       </div>
     `;
 
@@ -94,7 +131,7 @@ export class PaginaInicio {
       const ClientesActivos = ListaClientes.filter(c => c.EstaHabilitado).length;
       const PrestamosActivos = ListaPrestamos.filter(p => p.Estado === "Activo" || p.Estado === "Atrasado").length;
       
-      const MontoTotalPrestado = ListaPrestamos.reduce((Acum, p) => Acum + (Number(p.MontoTotal) || 0), 0);
+      const MontoCapitalPrestado = ListaPrestamos.reduce((Acum, p) => Acum + (Number(p.Monto) || 0), 0);
       const SaldoPendienteTotal = ListaPrestamos.reduce((Acum, p) => Acum + (Number(p.SaldoPendiente) || 0), 0);
 
       const ElClientes = document.getElementById("MetricaClientesActivos");
@@ -104,7 +141,7 @@ export class PaginaInicio {
 
       if (ElClientes) ElClientes.textContent = ClientesActivos;
       if (ElPrestamos) ElPrestamos.textContent = PrestamosActivos;
-      if (ElMonto) ElMonto.textContent = `Bs. ${MontoTotalPrestado.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (ElMonto) ElMonto.textContent = `Bs. ${MontoCapitalPrestado.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       if (ElSaldo) ElSaldo.textContent = `Bs. ${SaldoPendienteTotal.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     } catch (Error) {
       console.error("Error al cargar métricas del panel:", Error);

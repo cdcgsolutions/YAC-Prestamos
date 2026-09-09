@@ -44,10 +44,12 @@ export class LayoutPrincipal {
     const Correo = this.UsuarioActual?.CorreoElectronico || "usuario@yac.com";
     const Inicial = Nombre.trim().charAt(0).toUpperCase() || "U";
     const TemaActual = document.documentElement.getAttribute("data-theme") || "light";
+    const EsMovil = window.innerWidth <= 992;
+    const SidebarPlegado = !EsMovil && (localStorage.getItem("sidebar_plegado") === "true");
 
     const ContenedorApp = document.getElementById("App");
     ContenedorApp.innerHTML = `
-      <div class="LayoutDashboard">
+      <div class="LayoutDashboard ${SidebarPlegado ? "SidebarPlegado" : ""}" id="LayoutDashboardPrincipal">
         <!-- OVERLAY PARA MOVIL -->
         <div class="SidebarOverlay" id="SidebarOverlay"></div>
 
@@ -104,16 +106,15 @@ export class LayoutPrincipal {
         </aside>
 
         <!-- CONTENIDO PRINCIPAL -->
-        <div class="ContenedorPrincipal">
+        <div class="ContenedorPrincipal" id="ContenedorPrincipal">
           <header class="HeaderTop">
-            <button class="BotonMenuMovil" id="BotonMenuMovil" aria-label="Abrir Menú">
-              <i class="fa-solid fa-bars"></i>
-            </button>
-            <div class="TituloSeccionHeader">
-              ${this.ObtenerTituloSeccion(RutaActual)}
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <span class="Badge Badge-Success"><i class="fa-solid fa-circle-check"></i> En Línea</span>
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <button class="BotonToggleSidebar" id="BotonToggleSidebar" aria-label="Abrir o Cerrar Menú" title="Menú de Navegación">
+                <i class="fa-solid fa-bars" id="IconoToggleSidebar"></i>
+              </button>
+              <div class="TituloSeccionHeader">
+                ${this.ObtenerTituloSeccion(RutaActual)}
+              </div>
             </div>
           </header>
 
@@ -138,20 +139,50 @@ export class LayoutPrincipal {
   }
 
   static AdjuntarEventosLayout() {
-    const BotonMenu = document.getElementById("BotonMenuMovil");
+    const Layout = document.getElementById("LayoutDashboardPrincipal");
+    const BotonToggle = document.getElementById("BotonToggleSidebar");
     const Sidebar = document.getElementById("SidebarPrincipal");
     const Overlay = document.getElementById("SidebarOverlay");
     const BotonTema = document.getElementById("BotonAlternarTema");
     const BotonLogout = document.getElementById("BotonCerrarSesionGlobal");
     const BotonPWA = document.getElementById("BotonInstalarPWA");
 
-    const ToggleSidebar = () => {
-      Sidebar.classList.toggle("Abierto");
-      Overlay.classList.toggle("Abierto");
+    const AlternarSidebar = () => {
+      const EnMovil = window.innerWidth <= 992;
+      if (EnMovil) {
+        const EstaAbierto = Sidebar.classList.contains("Abierto");
+        if (EstaAbierto) {
+          Sidebar.classList.remove("Abierto");
+          Overlay.classList.remove("Abierto");
+        } else {
+          Sidebar.classList.add("Abierto");
+          Overlay.classList.add("Abierto");
+        }
+      } else {
+        Layout.classList.toggle("SidebarPlegado");
+        const EstaPlegado = Layout.classList.contains("SidebarPlegado");
+        localStorage.setItem("sidebar_plegado", EstaPlegado ? "true" : "false");
+      }
     };
 
-    if (BotonMenu) BotonMenu.addEventListener("click", ToggleSidebar);
-    if (Overlay) Overlay.addEventListener("click", ToggleSidebar);
+    if (BotonToggle) BotonToggle.addEventListener("click", AlternarSidebar);
+    
+    if (Overlay) {
+      Overlay.addEventListener("click", () => {
+        Sidebar.classList.remove("Abierto");
+        Overlay.classList.remove("Abierto");
+      });
+    }
+
+    // Cerrar sidebar al hacer clic en enlaces en versión móvil
+    Sidebar.querySelectorAll(".EnlaceNav").forEach((Enlace) => {
+      Enlace.addEventListener("click", () => {
+        if (window.innerWidth <= 992) {
+          Sidebar.classList.remove("Abierto");
+          Overlay.classList.remove("Abierto");
+        }
+      });
+    });
 
     if (BotonTema) {
       BotonTema.addEventListener("click", () => this.AlternarTema());

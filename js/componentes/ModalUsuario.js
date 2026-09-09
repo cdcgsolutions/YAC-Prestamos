@@ -5,7 +5,9 @@ import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 export class ModalUsuario {
   static Abrir({ Usuario = null, Roles = [], AlGuardar = () => {} }) {
     const EsEdicion = Boolean(Usuario && Usuario.IdDocumento);
-    const Titulo = EsEdicion ? "Editar Usuario" : "Nuevo Usuario";
+    const Titulo = EsEdicion 
+      ? `<i class="fa-solid fa-user-pen"></i> Editar Usuario` 
+      : `<i class="fa-solid fa-user-plus"></i> Nuevo Usuario`;
 
     let OpcionesRolesHTML = "";
     Roles.forEach((Rol) => {
@@ -15,12 +17,12 @@ export class ModalUsuario {
 
     const ContenidoHTML = `
       <form id="FormularioUsuario" novalidate>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="ModalGridForm">
           <div class="GrupoInput">
             <label class="EtiquetaInput" for="InputUsuarioNombre">Nombre Completo *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-id-badge IconoInput"></i>
-              <input type="text" id="InputUsuarioNombre" class="ControlInput" value="${Usuario ? Usuario.NombreUsuario : ""}" placeholder="Juan Pérez" required />
+              <input type="text" id="InputUsuarioNombre" class="ControlInput" value="${Usuario ? (Usuario.NombreUsuario || "") : ""}" required autocomplete="off" />
             </div>
           </div>
 
@@ -28,7 +30,7 @@ export class ModalUsuario {
             <label class="EtiquetaInput" for="InputUsuarioCorreo">Correo Electrónico *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-envelope IconoInput"></i>
-              <input type="email" id="InputUsuarioCorreo" class="ControlInput" value="${Usuario ? Usuario.CorreoElectronico : ""}" placeholder="correo@ejemplo.com" required />
+              <input type="email" id="InputUsuarioCorreo" class="ControlInput" value="${Usuario ? (Usuario.CorreoElectronico || "") : ""}" required autocomplete="off" />
             </div>
           </div>
 
@@ -36,7 +38,7 @@ export class ModalUsuario {
             <label class="EtiquetaInput" for="InputUsuarioContrasena">Contraseña *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-lock IconoInput"></i>
-              <input type="password" id="InputUsuarioContrasena" class="ControlInput" value="${Usuario ? Usuario.Contrasena : ""}" placeholder="Alfanumérica con símbolo" required />
+              <input type="password" id="InputUsuarioContrasena" class="ControlInput" value="${Usuario ? (Usuario.Contrasena || "") : ""}" required autocomplete="new-password" />
               <button type="button" class="BotonVisibilidadPassword" id="BotonVerPassUsuario" aria-label="Mostrar contraseña">
                 <i class="fa-solid fa-eye-slash"></i>
               </button>
@@ -47,37 +49,35 @@ export class ModalUsuario {
             <label class="EtiquetaInput" for="InputUsuarioConfirmar">Confirmar Contraseña *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-lock IconoInput"></i>
-              <input type="password" id="InputUsuarioConfirmar" class="ControlInput" value="${Usuario ? Usuario.Contrasena : ""}" placeholder="Repita la contraseña" required />
+              <input type="password" id="InputUsuarioConfirmar" class="ControlInput" value="${Usuario ? (Usuario.Contrasena || "") : ""}" required autocomplete="new-password" />
             </div>
           </div>
+
+          <div class="GrupoInput ColumnaCompleta">
+            <label class="EtiquetaInput" for="SelectUsuarioRol">Rol de Usuario *</label>
+            <div class="EnvoltorioInput">
+              <i class="fa-solid fa-user-shield IconoInput"></i>
+              <select id="SelectUsuarioRol" class="ControlInput">
+                ${OpcionesRolesHTML}
+              </select>
+            </div>
+          </div>
+
+          ${
+            EsEdicion
+              ? `
+            <div class="ColumnaCompleta">
+              <div class="ModalCheckbox">
+                <input type="checkbox" id="CheckUsuarioHabilitado" ${Usuario.EstaHabilitado ? "checked" : ""} />
+                <label for="CheckUsuarioHabilitado">Usuario Habilitado / Activo</label>
+              </div>
+            </div>
+          `
+              : ""
+          }
         </div>
 
-        <div class="GrupoInput" style="margin-top: 0.5rem;">
-          <label class="EtiquetaInput" for="SelectUsuarioRol">Rol de Usuario</label>
-          <div class="EnvoltorioInput">
-            <i class="fa-solid fa-user-shield IconoInput"></i>
-            <select id="SelectUsuarioRol" class="ControlInput">
-              ${OpcionesRolesHTML}
-            </select>
-          </div>
-        </div>
-
-        ${
-          EsEdicion
-            ? `
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0;">
-            <input type="checkbox" id="CheckUsuarioHabilitado" style="width: 18px; height: 18px; accent-color: var(--color-primario);" ${
-              Usuario.EstaHabilitado ? "checked" : ""
-            } />
-            <label for="CheckUsuarioHabilitado" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;">
-              Usuario Habilitado
-            </label>
-          </div>
-        `
-            : ""
-        }
-
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <div class="ModalAcciones">
           <button type="button" class="Boton Boton-Secundario" id="BotonCancelarUsuario">Cancelar</button>
           <button type="submit" class="Boton Boton-Primario" id="BotonGuardarUsuario">
             <span id="TextoGuardarUsuario">${EsEdicion ? "Guardar Cambios" : "Crear Usuario"}</span>

@@ -5,17 +5,16 @@ import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 export class ModalPrestamo {
   static Abrir({ Prestamo = null, Clientes = [], AlGuardar = () => {} }) {
     const EsEdicion = Boolean(Prestamo && Prestamo.IdDocumento);
-    const Titulo = EsEdicion ? "Editar Préstamo" : "Nuevo Préstamo";
+    const Titulo = EsEdicion 
+      ? `<i class="fa-solid fa-file-pen"></i> Editar Préstamo` 
+      : `<i class="fa-solid fa-hand-holding-dollar"></i> Nuevo Préstamo`;
 
-    // Opciones de Clientes
-    let OpcionesClientesHTML = '<option value="">-- Seleccione un cliente --</option>';
-    const ClientesValidos = Clientes.filter(c => c.EstaHabilitado || (Prestamo && Prestamo.IdCliente === c.Id));
-    ClientesValidos.forEach((Cli) => {
+    let OpcionesClientesHTML = '<option value="" disabled selected>Seleccione un cliente...</option>';
+    Clientes.filter((c) => c.EstaHabilitado).forEach((Cli) => {
       const Seleccionado = (Prestamo && Prestamo.IdCliente === Cli.Id) ? "selected" : "";
-      OpcionesClientesHTML += `<option value="${Cli.Id}">${Cli.Nombre} (ID: #${Cli.Id})</option>`;
+      OpcionesClientesHTML += `<option value="${Cli.Id}" ${Seleccionado}>${Cli.Nombre} (Doc: ${Cli.Id || "-"})</option>`;
     });
 
-    // Opciones de Modalidad
     const Modalidades = ["Diario", "Semanal", "Quincenal", "Mensual"];
     let OpcionesModalidadHTML = "";
     Modalidades.forEach((Mod) => {
@@ -23,31 +22,30 @@ export class ModalPrestamo {
       OpcionesModalidadHTML += `<option value="${Mod}" ${Seleccionado}>${Mod}</option>`;
     });
 
-    // Opciones de Estado
-    const Estados = ["Activo", "Pagado", "Atrasado", "Anulado"];
+    const Estados = ["Activo", "Completado", "Cancelado"];
     let OpcionesEstadoHTML = "";
     Estados.forEach((Est) => {
-      const Seleccionado = (Prestamo ? Prestamo.Estado === Est : Est === "Activo") ? "selected" : "";
+      const Seleccionado = (Prestamo && Prestamo.Estado === Est) ? "selected" : "";
       OpcionesEstadoHTML += `<option value="${Est}" ${Seleccionado}>${Est}</option>`;
     });
 
     const MontoInicial = Prestamo ? Prestamo.Monto : 1000;
     const InteresInicial = Prestamo ? Prestamo.PorcentajeInteres : 10;
-    const MontoTotalInicial = Prestamo ? Prestamo.MontoTotal : MontoInicial + (MontoInicial * (InteresInicial / 100));
+    const MontoTotalInicial = MontoInicial + (MontoInicial * (InteresInicial / 100));
 
     const ContenidoHTML = `
       <form id="FormularioPrestamo" novalidate>
-        <div class="GrupoInput">
-          <label class="EtiquetaInput" for="SelectPrestamoCliente">Cliente *</label>
-          <div class="EnvoltorioInput">
-            <i class="fa-solid fa-user-tag IconoInput"></i>
-            <select id="SelectPrestamoCliente" class="ControlInput" required>
-              ${OpcionesClientesHTML}
-            </select>
+        <div class="ModalGridForm">
+          <div class="GrupoInput ColumnaCompleta">
+            <label class="EtiquetaInput" for="SelectPrestamoCliente">Cliente *</label>
+            <div class="EnvoltorioInput">
+              <i class="fa-solid fa-user-tag IconoInput"></i>
+              <select id="SelectPrestamoCliente" class="ControlInput" required ${EsEdicion ? "disabled" : ""}>
+                ${OpcionesClientesHTML}
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
           <div class="GrupoInput">
             <label class="EtiquetaInput" for="InputPrestamoMonto">Monto del Préstamo (Bs.) *</label>
             <div class="EnvoltorioInput">
@@ -64,7 +62,7 @@ export class ModalPrestamo {
             </div>
           </div>
 
-          <div class="GrupoInput">
+          <div class="GrupoInput ${EsEdicion ? "" : "ColumnaCompleta"}">
             <label class="EtiquetaInput" for="SelectPrestamoModalidad">Modalidad de Cobro *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-calendar-check IconoInput"></i>
@@ -89,20 +87,23 @@ export class ModalPrestamo {
           `
               : ""
           }
-        </div>
 
-        <!-- RECUADRO INFORMATIVO DE TOTAL A PAGAR -->
-        <div style="background-color: var(--color-primario-suave); border: 1px solid rgba(22, 163, 74, 0.3); border-radius: var(--radio-md); padding: 1.25rem; margin: 1rem 0; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 0.85rem; color: var(--color-primario); font-weight: 600;">Monto Total a Pagar</div>
-            <div id="TextoMontoTotalCalculado" style="font-size: 1.5rem; font-weight: 800; color: var(--color-primario);">
-              Bs. ${MontoTotalInicial.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div class="ColumnaCompleta">
+            <div class="ModalResumenBox">
+              <div>
+                <div class="Etiqueta">Monto Total a Pagar (Capital + Interés)</div>
+                <div class="Valor" id="TextoMontoTotalCalculado">
+                  Bs. ${MontoTotalInicial.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div class="Icono">
+                <i class="fa-solid fa-calculator"></i>
+              </div>
             </div>
           </div>
-          <i class="fa-solid fa-calculator" style="font-size: 2rem; color: var(--color-primario); opacity: 0.8;"></i>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <div class="ModalAcciones">
           <button type="button" class="Boton Boton-Secundario" id="BotonCancelarPrestamo">Cancelar</button>
           <button type="submit" class="Boton Boton-Primario" id="BotonGuardarPrestamo">
             <span id="TextoGuardarPrestamo">${EsEdicion ? "Guardar Cambios" : "Crear Préstamo"}</span>
@@ -153,7 +154,7 @@ export class ModalPrestamo {
           const ModalidadCobro = SelectModalidad.value;
           const Estado = SelectEstado ? SelectEstado.value : "Activo";
 
-          if (!IdCliente) {
+          if (!IdCliente && !EsEdicion) {
             ServicioNotificaciones.MostrarAdvertencia("Por favor seleccione un cliente.", "Cliente Requerido");
             return;
           }
@@ -165,7 +166,7 @@ export class ModalPrestamo {
 
           const MontoTotal = Monto + (Monto * (Interes / 100));
           const ClienteSeleccionado = Clientes.find((c) => c.Id === IdCliente);
-          const NombreCliente = ClienteSeleccionado ? ClienteSeleccionado.Nombre : "Desconocido";
+          const NombreCliente = ClienteSeleccionado ? ClienteSeleccionado.Nombre : (Prestamo ? Prestamo.NombreCliente : "Desconocido");
 
           // Si es nuevo, el saldo pendiente es el total
           const SaldoPendiente = EsEdicion ? Math.min(Prestamo.SaldoPendiente, MontoTotal) : MontoTotal;
@@ -179,7 +180,7 @@ export class ModalPrestamo {
             if (EsEdicion) {
               Resultado = await ServicioFirebase.ActualizarPrestamo(
                 Prestamo.IdDocumento,
-                IdCliente,
+                Prestamo.IdCliente,
                 NombreCliente,
                 Monto,
                 Interes,

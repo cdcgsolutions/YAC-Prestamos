@@ -15,8 +15,8 @@ export class PaginaUsuarios {
     const HtmlCuerpo = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-          <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primario);">Gestión de Usuarios</h2>
-          <p style="color: var(--color-texto-secundario); font-size: 0.9rem;">Control de accesos, roles y permisos de operadores.</p>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-primario);">Gestión de Usuarios</h2>
+          <p style="color: var(--color-texto-secundario); font-size: 0.85rem;">Control de accesos, roles y operadores del sistema.</p>
         </div>
         <button class="Boton Boton-Primario" id="BotonNuevoUsuario">
           <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
@@ -32,7 +32,8 @@ export class PaginaUsuarios {
           </div>
         </div>
 
-        <div class="TablaResponsiva">
+        <!-- VISTA TABLA PARA ESCRITORIO -->
+        <div class="VistaTablaEscritorio TablaResponsiva">
           <table class="Tabla">
             <thead>
               <tr>
@@ -53,6 +54,14 @@ export class PaginaUsuarios {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- VISTA TARJETAS (CARDS) PARA MÓVIL -->
+        <div class="VistaTarjetasMovil" id="ContenedorTarjetasUsuariosMovil">
+          <div style="text-align: center; padding: 2rem;">
+            <div class="Spinner SpinnerOscuro"></div>
+            <div style="margin-top: 0.5rem; color: var(--color-texto-secundario);">Cargando usuarios...</div>
+          </div>
         </div>
       </div>
 
@@ -109,8 +118,9 @@ export class PaginaUsuarios {
 
   static ActualizarTabla() {
     const CuerpoTabla = document.getElementById("CuerpoTablaUsuarios");
+    const ContenedorMovil = document.getElementById("ContenedorTarjetasUsuariosMovil");
     const ContenedorPaginacion = document.getElementById("ContenedorPaginacionUsuarios");
-    if (!CuerpoTabla) return;
+    if (!CuerpoTabla || !ContenedorMovil) return;
 
     const UsuariosFiltrados = this.ListaUsuarios.filter((u) => {
       if (!this.TextoBusqueda) return true;
@@ -120,14 +130,14 @@ export class PaginaUsuarios {
     });
 
     if (UsuariosFiltrados.length === 0) {
-      CuerpoTabla.innerHTML = `
-        <tr>
-          <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-texto-atenuado);">
-            <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
-            No se encontraron usuarios registrados.
-          </td>
-        </tr>
+      const VacioHTML = `
+        <div style="text-align: center; padding: 2.5rem; color: var(--color-texto-atenuado);">
+          <i class="fa-solid fa-user-slash" style="font-size: 2.5rem; margin-bottom: 0.5rem; display: block;"></i>
+          No se encontraron usuarios registrados.
+        </div>
       `;
+      CuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem;">No se encontraron usuarios.</td></tr>`;
+      ContenedorMovil.innerHTML = VacioHTML;
       if (ContenedorPaginacion) ContenedorPaginacion.innerHTML = "";
       return;
     }
@@ -138,13 +148,16 @@ export class PaginaUsuarios {
     const Inicio = (this.PaginaActual - 1) * this.ElementosPorPagina;
     const PaginaElementos = UsuariosFiltrados.slice(Inicio, Inicio + this.ElementosPorPagina);
 
-    let FilasHTML = "";
+    let FilasTablaHTML = "";
+    let TarjetasMovilHTML = "";
+
     PaginaElementos.forEach((User) => {
       const EstadoBadge = User.EstaHabilitado
         ? '<span class="Badge Badge-Habilitado"><i class="fa-solid fa-circle-check"></i> Habilitado</span>'
         : '<span class="Badge Badge-Deshabilitado"><i class="fa-solid fa-ban"></i> Deshabilitado</span>';
 
-      FilasHTML += `
+      // 1. Fila de Tabla para Escritorio
+      FilasTablaHTML += `
         <tr>
           <td><strong>#${User.Id || "-"}</strong></td>
           <td style="font-weight: 600;">${User.NombreUsuario || "Sin Nombre"}</td>
@@ -163,11 +176,45 @@ export class PaginaUsuarios {
           </td>
         </tr>
       `;
+
+      // 2. Tarjeta (Card) para Móvil con Botón Secundario adaptable a Modo Claro/Oscuro
+      TarjetasMovilHTML += `
+        <div class="TarjetaRegistroMovil">
+          <div class="CabeceraRegistroMovil">
+            <div>
+              <span class="IdRegistroMovil">#${User.Id || "-"}</span>
+              <span class="NombreRegistroMovil">${User.NombreUsuario || "Sin Nombre"}</span>
+            </div>
+            <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+              <span class="Badge Badge-Info">${this.ObtenerNombreRol(User.IdRol)}</span>
+              ${EstadoBadge}
+            </div>
+          </div>
+
+          <div class="CuerpoRegistroMovil">
+            <div class="ItemDatoMovil">
+              <i class="fa-solid fa-envelope"></i>
+              <span>${User.CorreoElectronico || "-"}</span>
+            </div>
+          </div>
+
+          <div class="AccionesRegistroMovil">
+            <button class="Boton Boton-Secundario Boton-Sm" data-id="${User.IdDocumento}">
+              <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
+            </button>
+            <button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${User.IdDocumento}">
+              <i class="fa-solid ${User.EstaHabilitado ? "fa-ban" : "fa-circle-check"}" style="color: ${User.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
+              ${User.EstaHabilitado ? "Deshabilitar" : "Habilitar"}
+            </button>
+          </div>
+        </div>
+      `;
     });
 
-    CuerpoTabla.innerHTML = FilasHTML;
+    CuerpoTabla.innerHTML = FilasTablaHTML;
+    ContenedorMovil.innerHTML = TarjetasMovilHTML;
 
-    // Renderizar paginación
+    // Paginación
     if (ContenedorPaginacion) {
       ContenedorPaginacion.innerHTML = ComponentePaginacion.Renderizar({
         PaginaActual: this.PaginaActual,
@@ -179,48 +226,53 @@ export class PaginaUsuarios {
       });
     }
 
-    // Eventos de botones de fila
-    CuerpoTabla.querySelectorAll(".Boton-Icono.Editar").forEach((Boton) => {
-      Boton.addEventListener("click", () => {
-        const DocId = Boton.dataset.id;
-        const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
-        if (User) {
-          ModalUsuario.Abrir({
-            Usuario: User,
-            Roles: this.ListaRoles,
-            AlGuardar: () => this.CargarDatos()
-          });
-        }
-      });
-    });
-
-    CuerpoTabla.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
-      Boton.addEventListener("click", async () => {
-        const DocId = Boton.dataset.toggleId;
-        const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
-        if (User) {
-          const NuevoEstado = !User.EstaHabilitado;
-          try {
-            const Resp = await ServicioFirebase.ActualizarUsuario(
-              User.IdDocumento,
-              User.NombreUsuario,
-              User.CorreoElectronico,
-              User.Contrasena,
-              NuevoEstado,
-              User.IdRol
-            );
-            if (Resp.Exito) {
-              User.EstaHabilitado = NuevoEstado;
-              ServicioNotificaciones.MostrarExito(NuevoEstado ? "Usuario habilitado." : "Usuario deshabilitado.");
-              this.ActualizarTabla();
-            } else {
-              ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
-            }
-          } catch (Err) {
-            ServicioNotificaciones.MostrarError("Error: " + Err.message);
+    // Eventos
+    const AsignarEventosBotones = (Contenedor) => {
+      Contenedor.querySelectorAll("[data-id]").forEach((Boton) => {
+        Boton.addEventListener("click", () => {
+          const DocId = Boton.dataset.id;
+          const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
+          if (User) {
+            ModalUsuario.Abrir({
+              Usuario: User,
+              Roles: this.ListaRoles,
+              AlGuardar: () => this.CargarDatos()
+            });
           }
-        }
+        });
       });
-    });
+
+      Contenedor.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
+        Boton.addEventListener("click", async () => {
+          const DocId = Boton.dataset.toggleId;
+          const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
+          if (User) {
+            const NuevoEstado = !User.EstaHabilitado;
+            try {
+              const Resp = await ServicioFirebase.ActualizarUsuario(
+                User.IdDocumento,
+                User.NombreUsuario,
+                User.CorreoElectronico,
+                User.Contrasena,
+                NuevoEstado,
+                User.IdRol
+              );
+              if (Resp.Exito) {
+                User.EstaHabilitado = NuevoEstado;
+                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Usuario habilitado." : "Usuario deshabilitado.");
+                this.ActualizarTabla();
+              } else {
+                ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
+              }
+            } catch (Err) {
+              ServicioNotificaciones.MostrarError("Error: " + Err.message);
+            }
+          }
+        });
+      });
+    };
+
+    AsignarEventosBotones(CuerpoTabla);
+    AsignarEventosBotones(ContenedorMovil);
   }
 }

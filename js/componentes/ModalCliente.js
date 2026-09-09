@@ -5,7 +5,9 @@ import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 export class ModalCliente {
   static Abrir({ Cliente = null, AlGuardar = () => {} }) {
     const EsEdicion = Boolean(Cliente && Cliente.IdDocumento);
-    const Titulo = EsEdicion ? "Editar Cliente" : "Nuevo Cliente";
+    const Titulo = EsEdicion 
+      ? `<i class="fa-solid fa-user-pen"></i> Editar Cliente` 
+      : `<i class="fa-solid fa-user-plus"></i> Nuevo Cliente`;
 
     const OpcionesEstadoCivil = ["Soltero(a)", "Casado(a)", "Divorciado(a)", "Viudo(a)"];
     let OpcionesEstadoCivilHTML = "";
@@ -16,28 +18,12 @@ export class ModalCliente {
 
     const ContenidoHTML = `
       <form id="FormularioCliente" novalidate>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="ModalGridForm">
           <div class="GrupoInput">
             <label class="EtiquetaInput" for="InputClienteNombre">Nombre Completo *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-user IconoInput"></i>
-              <input type="text" id="InputClienteNombre" class="ControlInput" value="${Cliente ? Cliente.Nombre : ""}" placeholder="Nombre del cliente" required />
-            </div>
-          </div>
-
-          <div class="GrupoInput">
-            <label class="EtiquetaInput" for="InputClienteDireccion">Dirección</label>
-            <div class="EnvoltorioInput">
-              <i class="fa-solid fa-location-dot IconoInput"></i>
-              <input type="text" id="InputClienteDireccion" class="ControlInput" value="${Cliente ? (Cliente.Direccion || "") : ""}" placeholder="Av. Principal #123" />
-            </div>
-          </div>
-
-          <div class="GrupoInput">
-            <label class="EtiquetaInput" for="InputClienteCorreo">Correo Electrónico</label>
-            <div class="EnvoltorioInput">
-              <i class="fa-solid fa-envelope IconoInput"></i>
-              <input type="email" id="InputClienteCorreo" class="ControlInput" value="${Cliente ? (Cliente.Correo || "") : ""}" placeholder="cliente@ejemplo.com" />
+              <input type="text" id="InputClienteNombre" class="ControlInput" value="${Cliente ? (Cliente.Nombre || "") : ""}" required autocomplete="off" />
             </div>
           </div>
 
@@ -45,15 +31,15 @@ export class ModalCliente {
             <label class="EtiquetaInput" for="InputClienteCelular">Nro Celular *</label>
             <div class="EnvoltorioInput">
               <i class="fa-solid fa-phone IconoInput"></i>
-              <input type="tel" id="InputClienteCelular" class="ControlInput" value="${Cliente ? Cliente.Celular : ""}" placeholder="70012345" required />
+              <input type="tel" id="InputClienteCelular" class="ControlInput" value="${Cliente ? (Cliente.Celular || "") : ""}" required autocomplete="off" />
             </div>
           </div>
 
           <div class="GrupoInput">
-            <label class="EtiquetaInput" for="InputClienteNacimiento">Fecha de Nacimiento</label>
+            <label class="EtiquetaInput" for="InputClienteCorreo">Correo Electrónico</label>
             <div class="EnvoltorioInput">
-              <i class="fa-solid fa-calendar-days IconoInput"></i>
-              <input type="date" id="InputClienteNacimiento" class="ControlInput" value="${Cliente && Cliente.FechaNacimiento ? Cliente.FechaNacimiento.substring(0, 10) : ""}" />
+              <i class="fa-solid fa-envelope IconoInput"></i>
+              <input type="email" id="InputClienteCorreo" class="ControlInput" value="${Cliente ? (Cliente.Correo || "") : ""}" autocomplete="off" />
             </div>
           </div>
 
@@ -66,24 +52,38 @@ export class ModalCliente {
               </select>
             </div>
           </div>
+
+          <div class="GrupoInput">
+            <label class="EtiquetaInput" for="InputClienteNacimiento">Fecha de Nacimiento</label>
+            <div class="EnvoltorioInput">
+              <i class="fa-solid fa-calendar-days IconoInput"></i>
+              <input type="date" id="InputClienteNacimiento" class="ControlInput" value="${Cliente && Cliente.FechaNacimiento ? Cliente.FechaNacimiento.substring(0, 10) : ""}" />
+            </div>
+          </div>
+
+          <div class="GrupoInput">
+            <label class="EtiquetaInput" for="InputClienteDireccion">Dirección</label>
+            <div class="EnvoltorioInput">
+              <i class="fa-solid fa-location-dot IconoInput"></i>
+              <input type="text" id="InputClienteDireccion" class="ControlInput" value="${Cliente ? (Cliente.Direccion || "") : ""}" autocomplete="off" />
+            </div>
+          </div>
+
+          ${
+            EsEdicion
+              ? `
+            <div class="ColumnaCompleta">
+              <div class="ModalCheckbox">
+                <input type="checkbox" id="CheckClienteHabilitado" ${Cliente.EstaHabilitado ? "checked" : ""} />
+                <label for="CheckClienteHabilitado">Cliente Habilitado / Activo</label>
+              </div>
+            </div>
+          `
+              : ""
+          }
         </div>
 
-        ${
-          EsEdicion
-            ? `
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0;">
-            <input type="checkbox" id="CheckClienteHabilitado" style="width: 18px; height: 18px; accent-color: var(--color-primario);" ${
-              Cliente.EstaHabilitado ? "checked" : ""
-            } />
-            <label for="CheckClienteHabilitado" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;">
-              Cliente Habilitado / Activo
-            </label>
-          </div>
-        `
-            : ""
-        }
-
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <div class="ModalAcciones">
           <button type="button" class="Boton Boton-Secundario" id="BotonCancelarCliente">Cancelar</button>
           <button type="submit" class="Boton Boton-Primario" id="BotonGuardarCliente">
             <span id="TextoGuardarCliente">${EsEdicion ? "Guardar Cambios" : "Crear Cliente"}</span>

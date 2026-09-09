@@ -1,4 +1,4 @@
-﻿const NombreCache = "yac-prestamos-v1";
+﻿const NombreCache = "yac-prestamos-v3";
 const RecursosCache = [
   "./",
   "./index.html",
@@ -29,14 +29,14 @@ const RecursosCache = [
 ];
 
 self.addEventListener("install", (Evento) => {
+  self.skipWaiting();
   Evento.waitUntil(
     caches.open(NombreCache).then((Cache) => {
       return Cache.addAll(RecursosCache).catch((Error) => {
-        console.warn("Algunos recursos estáticos no pudieron almacenarse en caché preliminar:", Error);
+        console.warn("Error cacheando recursos:", Error);
       });
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (Evento) => {
@@ -49,37 +49,34 @@ self.addEventListener("activate", (Evento) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (Evento) => {
   if (Evento.request.method !== "GET") return;
-  
-  // No almacenar peticiones a firestore en el service worker (firestore tiene su propio offline)
+
   const Url = new URL(Evento.request.url);
-  if (Url.origin.includes("firestore.googleapis.com") || Url.origin.includes("firebase")) {
+  if (Url.origin.includes("firestore.googleapis.com") || Url.origin.includes("firebase") || Url.origin.includes("gstatic.com")) {
     return;
   }
 
+  // Network first para desarrollo para que siempre obtenga los últimos cambios de código
   Evento.respondWith(
-    caches.match(Evento.request).then((RespuestaEnCache) => {
-      if (RespuestaEnCache) {
-        return RespuestaEnCache;
-      }
-      return fetch(Evento.request).then((RespuestaRed) => {
-        if (!RespuestaRed || RespuestaRed.status !== 200 || RespuestaRed.type !== "basic") {
-          return RespuestaRed;
+    fetch(Evento.request)
+      .then((RespuestaRed) => {
+        if (RespuestaRed && RespuestaRed.status === 200 && RespuestaRed.type === "basic") {
+          const ClonRespuesta = RespuestaRed.clone();
+          caches.open(NombreCache).then((Cache) => {
+            Cache.put(Evento.request, ClonRespuesta);
+          });
         }
-        const ClonRespuesta = RespuestaRed.clone();
-        caches.open(NombreCache).then((Cache) => {
-          Cache.put(Evento.request, ClonRespuesta);
-        });
         return RespuestaRed;
-      }).catch(() => {
-        return caches.match("./index.html");
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(Evento.request).then((RespuestaCache) => {
+          return RespuestaCache || caches.match("./index.html");
+        });
+      })
   );
 });

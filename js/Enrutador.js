@@ -1,9 +1,9 @@
 ﻿import { ServicioSesion } from "./servicios/ServicioSesion.js";
-import { PaginaLogin } from "./componentes/PaginaLogin.js";
-import { PaginaInicio } from "./componentes/PaginaInicio.js";
-import { PaginaUsuarios } from "./componentes/PaginaUsuarios.js";
-import { PaginaClientes } from "./componentes/PaginaClientes.js";
-import { PaginaPrestamos } from "./componentes/PaginaPrestamos.js";
+import { PaginaLogin } from "./componentes/PaginaLogin.js?v=3";
+import { PaginaInicio } from "./componentes/PaginaInicio.js?v=3";
+import { PaginaUsuarios } from "./componentes/PaginaUsuarios.js?v=3";
+import { PaginaClientes } from "./componentes/PaginaClientes.js?v=3";
+import { PaginaPrestamos } from "./componentes/PaginaPrestamos.js?v=3";
 
 export class Enrutador {
   static Rutas = {

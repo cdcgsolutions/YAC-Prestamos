@@ -17,7 +17,7 @@ export class PaginaLogin {
             <p class="SubtituloLogin">Sistema de Gestión y Control Financiero</p>
           </div>
 
-          <form id="FormularioLogin" novalidate>
+          <form id="FormularioLogin" autocomplete="off" novalidate>
             <div class="GrupoInput">
               <label class="EtiquetaInput" for="InputCorreo">Correo</label>
               <div class="EnvoltorioInput">
@@ -26,7 +26,8 @@ export class PaginaLogin {
                   type="email" 
                   id="InputCorreo" 
                   class="ControlInput" 
-                  autocomplete="email" 
+                  autocomplete="off" 
+                  value=""
                   required
                 />
               </div>
@@ -40,7 +41,8 @@ export class PaginaLogin {
                   type="password" 
                   id="InputContrasena" 
                   class="ControlInput" 
-                  autocomplete="current-password" 
+                  autocomplete="new-password" 
+                  value=""
                   required
                 />
                 <button type="button" class="BotonVisibilidadPassword" id="BotonVerPassword" aria-label="Mostrar u ocultar contraseña">
@@ -77,6 +79,14 @@ export class PaginaLogin {
     const TextoBoton = document.getElementById("TextoBotonLogin");
     const Spinner = document.getElementById("SpinnerLogin");
     const EnlaceOlvido = document.getElementById("EnlaceOlvido");
+
+    // Limpiar campos para evitar autocompletado del navegador
+    if (InputCorreo) InputCorreo.value = "";
+    if (InputContrasena) InputContrasena.value = "";
+    setTimeout(() => {
+      if (InputCorreo) InputCorreo.value = "";
+      if (InputContrasena) InputContrasena.value = "";
+    }, 100);
 
     let PasswordVisible = false;
     BotonVerPassword.addEventListener("click", () => {

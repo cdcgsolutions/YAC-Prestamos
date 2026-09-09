@@ -8,13 +8,13 @@ export class ModalPago {
 
     const ContenidoHTML = `
       <form id="FormularioPago" novalidate>
-        <div style="background-color: var(--color-superficie-hover); border-radius: var(--radio-md); padding: 1rem; margin-bottom: 1.25rem;">
-          <div style="font-size: 0.9rem; color: var(--color-texto-secundario); margin-bottom: 0.25rem;">Cliente</div>
-          <div style="font-size: 1.1rem; font-weight: 700;">${Prestamo.NombreCliente}</div>
+        <div style="background-color: var(--color-superficie-hover); border: 1px solid var(--color-borde); border-radius: var(--radio-lg); padding: 1.25rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.85rem; color: var(--color-texto-secundario); margin-bottom: 0.25rem;">Cliente</div>
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--color-texto-primario);">${Prestamo.NombreCliente}</div>
 
-          <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; border-top: 1px solid var(--color-borde); padding-top: 0.75rem;">
-            <span style="color: var(--color-texto-secundario); font-size: 0.9rem;">Saldo Pendiente:</span>
-            <span style="color: var(--color-peligro); font-weight: 800; font-size: 1.1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; border-top: 1px solid var(--color-borde); padding-top: 0.85rem;">
+            <span style="color: var(--color-texto-secundario); font-size: 0.9rem; font-weight: 600;">Saldo Pendiente:</span>
+            <span style="color: var(--color-peligro); font-weight: 800; font-size: 1.25rem;">
               Bs. ${Number(Prestamo.SaldoPendiente).toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -37,7 +37,7 @@ export class ModalPago {
           </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <div class="ModalAcciones">
           <button type="button" class="Boton Boton-Secundario" id="BotonCancelarPago">Cancelar</button>
           <button type="submit" class="Boton Boton-Primario" id="BotonConfirmarPago">
             <span id="TextoConfirmarPago">Registrar Abono</span>
@@ -48,7 +48,7 @@ export class ModalPago {
     `;
 
     ComponenteModal.Abrir({
-      Titulo: "Registrar Pago de Cuota",
+      Titulo: `<i class="fa-solid fa-receipt"></i> Registrar Pago de Cuota`,
       ContenidoHTML,
       Tamano: "Pequeno",
       AlAbrir: (CuerpoEl) => {
