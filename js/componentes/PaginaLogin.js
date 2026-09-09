@@ -19,14 +19,13 @@ export class PaginaLogin {
 
           <form id="FormularioLogin" novalidate>
             <div class="GrupoInput">
-              <label class="EtiquetaInput" for="InputCorreo">Correo Electrónico</label>
+              <label class="EtiquetaInput" for="InputCorreo">Correo</label>
               <div class="EnvoltorioInput">
                 <i class="fa-solid fa-envelope IconoInput"></i>
                 <input 
                   type="email" 
                   id="InputCorreo" 
                   class="ControlInput" 
-                  placeholder="ejemplo@yac.com" 
                   autocomplete="email" 
                   required
                 />
@@ -41,7 +40,6 @@ export class PaginaLogin {
                   type="password" 
                   id="InputContrasena" 
                   class="ControlInput" 
-                  placeholder="••••••••" 
                   autocomplete="current-password" 
                   required
                 />
