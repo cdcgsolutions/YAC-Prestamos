@@ -1,0 +1,1107 @@
+﻿@import url('./variables.css');
+
+/* =========================================================
+   RESETEO Y ESTILOS BASE
+   ========================================================= */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--fuente-principal);
+  background-color: var(--color-fondo);
+  color: var(--color-texto-primario);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transicion-normal), color var(--transicion-normal);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* =========================================================
+   CONTENEDOR DE LA APLICACIÓN SPA
+   ========================================================= */
+
+#App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+   VISTA DE LOGIN
+   ========================================================= */
+
+.ContenedorLogin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: radial-gradient(circle at top, rgba(22, 163, 74, 0.15) 0%, var(--color-fondo) 70%);
+}
+
+.TarjetaLogin {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-xl);
+  padding: 2.5rem 2rem;
+  box-shadow: var(--sombra-xl);
+  animation: AparecerSuave 0.4s ease-out;
+}
+
+.EncabezadoLogin {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.IconoLogin {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radio-lg);
+  background: linear-gradient(135deg, var(--color-primario), #15803d);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem auto;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.35);
+}
+
+.TituloLogin {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primario);
+  letter-spacing: -0.5px;
+}
+
+.SubtituloLogin {
+  font-size: 0.9rem;
+  color: var(--color-texto-secundario);
+  margin-top: 0.25rem;
+}
+
+/* =========================================================
+   LAYOUT PRINCIPAL (SIDEBAR + HEADER + CONTENIDO)
+   ========================================================= */
+
+.LayoutDashboard {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* SIDEBAR */
+.Sidebar {
+  width: var(--ancho-sidebar);
+  background-color: var(--color-sidebar);
+  border-right: 1px solid var(--color-borde);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  transition: transform var(--transicion-normal);
+}
+
+.SidebarHeader {
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-borde);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.AvatarUsuario {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primario), #10b981);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.NombreUsuario {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-texto-primario);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.CorreoUsuario {
+  font-size: 0.8rem;
+  color: var(--color-primario);
+  font-weight: 500;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0.15rem;
+}
+
+.SidebarNav {
+  flex: 1;
+  padding: 1.25rem 0.75rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.EnlaceNav {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radio-md);
+  color: var(--color-texto-secundario);
+  font-weight: 500;
+  font-size: 0.925rem;
+  transition: all var(--transicion-rapida);
+  cursor: pointer;
+}
+
+.EnlaceNav i {
+  font-size: 1.15rem;
+  width: 24px;
+  text-align: center;
+  color: var(--color-texto-atenuado);
+  transition: color var(--transicion-rapida);
+}
+
+.EnlaceNav:hover {
+  background-color: var(--color-superficie-hover);
+  color: var(--color-texto-primario);
+}
+
+.EnlaceNav:hover i {
+  color: var(--color-primario);
+}
+
+.EnlaceNav.Activo {
+  background-color: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.EnlaceNav.Activo i {
+  color: var(--color-primario);
+}
+
+.SidebarFooter {
+  padding: 1rem;
+  border-top: 1px solid var(--color-borde);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.BotonTema {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: var(--radio-md);
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+}
+
+.BotonTema:hover {
+  background-color: var(--color-superficie-hover);
+  color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+
+.BotonPWA {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: var(--radio-md);
+  border: 1px solid var(--color-primario);
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+}
+
+.BotonPWA:hover {
+  background: var(--color-primario);
+  color: #ffffff;
+}
+
+.BotonCerrarSesion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border-radius: var(--radio-md);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: transparent;
+  color: var(--color-peligro);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+}
+
+.BotonCerrarSesion:hover {
+  background-color: var(--color-peligro);
+  color: #ffffff;
+}
+
+.Copyright {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-texto-atenuado);
+}
+
+/* HEADER SUPERIOR Y CONTENIDO */
+.ContenedorPrincipal {
+  flex: 1;
+  margin-left: var(--ancho-sidebar);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin var(--transicion-normal);
+}
+
+.HeaderTop {
+  height: var(--alto-header);
+  background-color: var(--color-header);
+  border-bottom: 1px solid var(--color-borde);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.BotonMenuMovil {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--color-texto-primario);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radio-sm);
+}
+
+.TituloSeccionHeader {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-texto-primario);
+}
+
+.ContenidoCuerpo {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* OVERLAY PARA MOVIL */
+.SidebarOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 45;
+}
+
+/* =========================================================
+   ELEMENTOS DE INTERFAZ (BOTONES, INPUTS, CARDS, BADGES)
+   ========================================================= */
+
+/* BOTONES */
+.Boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radio-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+  line-height: 1;
+}
+
+.Boton-Primario {
+  background-color: var(--color-primario);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.Boton-Primario:hover:not(:disabled) {
+  background-color: var(--color-primario-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+}
+
+.Boton-Secundario {
+  background-color: var(--color-superficie-hover);
+  color: var(--color-texto-primario);
+  border: 1px solid var(--color-borde);
+}
+
+.Boton-Secundario:hover:not(:disabled) {
+  background-color: var(--color-borde);
+}
+
+.Boton-Peligro {
+  background-color: var(--color-peligro);
+  color: #ffffff;
+}
+
+.Boton-Peligro:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.Boton-Icono {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radio-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transicion-rapida);
+}
+
+.Boton-Icono:hover {
+  background-color: var(--color-superficie-hover);
+  color: var(--color-primario);
+}
+
+.Boton-Icono.Editar:hover {
+  color: var(--color-info);
+  background-color: var(--color-info-suave);
+}
+
+.Boton-Icono.Eliminar:hover {
+  color: var(--color-peligro);
+  background-color: var(--color-peligro-suave);
+}
+
+.Boton-Icono.Exito:hover {
+  color: var(--color-exito);
+  background-color: var(--color-exito-suave);
+}
+
+.Boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* FORMULARIOS E INPUTS */
+.GrupoInput {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.EtiquetaInput {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+}
+
+.EnvoltorioInput {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.IconoInput {
+  position: absolute;
+  left: 1rem;
+  color: var(--color-texto-atenuado);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.ControlInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.6rem;
+  background-color: var(--color-input-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  color: var(--color-texto-primario);
+  font-size: 0.925rem;
+  outline: none;
+  transition: border-color var(--transicion-rapida), box-shadow var(--transicion-rapida);
+}
+
+.ControlInput.SinIcono {
+  padding-left: 1rem;
+}
+
+.ControlInput:focus {
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 3px var(--color-primario-suave);
+}
+
+.BotonVisibilidadPassword {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-texto-atenuado);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+
+.BotonVisibilidadPassword:hover {
+  color: var(--color-texto-primario);
+}
+
+/* TARJETAS (CARDS) */
+.Tarjeta {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.BannerBienvenida {
+  background: linear-gradient(135deg, var(--color-primario), #15803d);
+  color: #ffffff;
+  border-radius: var(--radio-xl);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25);
+}
+
+.BannerIcono {
+  font-size: 3rem;
+  opacity: 0.9;
+}
+
+/* GRID DE METRICAS (DASHBOARD) */
+.GridMetricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.TarjetaMetrica {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: var(--sombra-tarjeta);
+  transition: transform var(--transicion-normal), box-shadow var(--transicion-normal);
+}
+
+.TarjetaMetrica:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+}
+
+.IconoMetrica {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radio-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.IconoMetrica.Verde {
+  background-color: var(--color-exito-suave);
+  color: var(--color-exito);
+}
+
+.IconoMetrica.Azul {
+  background-color: var(--color-info-suave);
+  color: var(--color-info);
+}
+
+.IconoMetrica.Amarillo {
+  background-color: var(--color-advertencia-suave);
+  color: var(--color-advertencia);
+}
+
+.IconoMetrica.Rojo {
+  background-color: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+.ValorMetrica {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-texto-primario);
+  line-height: 1.2;
+}
+
+.TituloMetrica {
+  font-size: 0.85rem;
+  color: var(--color-texto-secundario);
+  font-weight: 500;
+}
+
+/* TABLAS */
+.ContenedorTabla {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra-tarjeta);
+  margin-bottom: 1.5rem;
+}
+
+.ToolbarTabla {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-borde);
+  flex-wrap: wrap;
+}
+
+.TituloTabla {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.TablaResponsiva {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.Tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.Tabla th {
+  background-color: var(--color-superficie-hover);
+  padding: 0.9rem 1.25rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  border-bottom: 1px solid var(--color-borde);
+  white-space: nowrap;
+}
+
+.Tabla td {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--color-borde);
+  color: var(--color-texto-primario);
+  vertical-align: middle;
+}
+
+.Tabla tbody tr:hover {
+  background-color: var(--color-superficie-hover);
+}
+
+.Tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* BADGES / CHIPS */
+.Badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radio-redondo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.Badge-Activo, .Badge-Habilitado, .Badge-Success {
+  background-color: var(--color-exito-suave);
+  color: #16a34a;
+}
+
+.Badge-Pagado, .Badge-Info {
+  background-color: var(--color-info-suave);
+  color: #2563eb;
+}
+
+.Badge-Atrasado, .Badge-Warning {
+  background-color: var(--color-advertencia-suave);
+  color: #d97706;
+}
+
+.Badge-Anulado, .Badge-Deshabilitado, .Badge-Danger {
+  background-color: var(--color-peligro-suave);
+  color: #dc2626;
+}
+
+/* =========================================================
+   GRID DE PRÉSTAMOS (TARJETAS)
+   ========================================================= */
+
+.GridPrestamos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.TarjetaPrestamo {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--sombra-tarjeta);
+  transition: transform var(--transicion-normal), box-shadow var(--transicion-normal);
+}
+
+.TarjetaPrestamo:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-lg);
+}
+
+.CabeceraPrestamo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.NombreClientePrestamo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-texto-primario);
+}
+
+.DetalleModalidad {
+  font-size: 0.8rem;
+  color: var(--color-texto-atenuado);
+  margin-top: 0.15rem;
+}
+
+.SeparadorPrestamo {
+  height: 1px;
+  background-color: var(--color-borde);
+  margin: 0.75rem 0;
+}
+
+.FilaDetallePrestamo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  margin-bottom: 0.4rem;
+}
+
+.EtiquetaDetalle {
+  color: var(--color-texto-secundario);
+}
+
+.ValorDetalle {
+  font-weight: 700;
+}
+
+.BarraProgresoEnvoltorio {
+  margin-top: 1rem;
+}
+
+.CabeceraProgreso {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+
+.BarraProgresoFondo {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-borde);
+  border-radius: var(--radio-redondo);
+  overflow: hidden;
+}
+
+.BarraProgresoRelleno {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primario), #22c55e);
+  border-radius: var(--radio-redondo);
+  transition: width 0.6s ease;
+}
+
+.AccionesPrestamo {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+/* =========================================================
+   PAGINACIÓN
+   ========================================================= */
+
+.ContenedorPaginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 1.5rem 0;
+}
+
+.BotonPagina {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.5rem;
+  border-radius: var(--radio-md);
+  border: 1px solid var(--color-borde);
+  background-color: var(--color-superficie);
+  color: var(--color-texto-primario);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transicion-rapida);
+}
+
+.BotonPagina:hover:not(:disabled) {
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+}
+
+.BotonPagina.Activo {
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border-color: var(--color-primario);
+}
+
+.BotonPagina:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   MODALES
+   ========================================================= */
+
+.ModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--overlay-modal);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transicion-normal);
+}
+
+.ModalOverlay.Abierto {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ModalVentana {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-xl);
+  width: 100%;
+  max-width: 580px;
+  box-shadow: var(--sombra-xl);
+  transform: scale(0.95);
+  transition: transform var(--transicion-normal);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.ModalVentana.Grande {
+  max-width: 800px;
+}
+
+.ModalVentana.Pequeno {
+  max-width: 440px;
+}
+
+.ModalOverlay.Abierto .ModalVentana {
+  transform: scale(1);
+}
+
+.ModalHeader {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-borde);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ModalTitulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primario);
+}
+
+.ModalCerrar {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--color-texto-atenuado);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.ModalCerrar:hover {
+  color: var(--color-texto-primario);
+}
+
+.ModalBody {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.ModalFooter {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--color-borde);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* =========================================================
+   SISTEMA DE NOTIFICACIONES TOAST
+   ========================================================= */
+
+.ContenedorToasts {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.Toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 420px;
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  box-shadow: var(--sombra-lg);
+  animation: SlideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ToastIcono {
+  font-size: 1.25rem;
+  margin-top: 0.1rem;
+}
+
+.Toast.Exito .ToastIcono { color: var(--color-exito); }
+.Toast.Error .ToastIcono { color: var(--color-peligro); }
+.Toast.Advertencia .ToastIcono { color: var(--color-advertencia); }
+.Toast.Info .ToastIcono { color: var(--color-info); }
+
+.ToastContenido {
+  flex: 1;
+}
+
+.ToastTitulo {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.ToastMensaje {
+  font-size: 0.825rem;
+  color: var(--color-texto-secundario);
+}
+
+.ToastCerrar {
+  background: none;
+  border: none;
+  color: var(--color-texto-atenuado);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.ToastBarraProgreso {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--color-primario);
+  width: 100%;
+  animation: ReducirBarra 3s linear forwards;
+}
+
+.Toast.Error .ToastBarraProgreso { background-color: var(--color-peligro); }
+.Toast.Advertencia .ToastBarraProgreso { background-color: var(--color-advertencia); }
+.Toast.Info .ToastBarraProgreso { background-color: var(--color-info); }
+
+/* =========================================================
+   ANIMACIONES
+   ========================================================= */
+
+@keyframes AparecerSuave {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes SlideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ReducirBarra {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.Spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: Giro 0.8s linear infinite;
+}
+
+.SpinnerOscuro {
+  border: 3px solid var(--color-borde);
+  border-top-color: var(--color-primario);
+}
+
+@keyframes Giro {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   RESPONSIVIDAD (MÓVILES Y TABLETS)
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .Sidebar {
+    transform: translateX(-100%);
+  }
+
+  .Sidebar.Abierto {
+    transform: translateX(0);
+  }
+
+  .SidebarOverlay.Abierto {
+    display: block;
+  }
+
+  .ContenedorPrincipal {
+    margin-left: 0;
+  }
+
+  .BotonMenuMovil {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .ContenidoCuerpo {
+    padding: 1.25rem 1rem;
+  }
+
+  .GridMetricas {
+    grid-template-columns: 1fr;
+  }
+
+  .ToolbarTabla {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ContenedorToasts {
+    left: 1rem;
+    right: 1rem;
+    top: 1rem;
+  }
+
+  .Toast {
+    min-width: unset;
+    width: 100%;
+  }
+}

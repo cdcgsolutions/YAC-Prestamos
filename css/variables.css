@@ -1,0 +1,75 @@
+﻿/* =========================================================
+   VARIABLES DE DISEÑO Y TEMAS (Modo Claro y Modo Oscuro)
+   ========================================================= */
+
+:root {
+  /* Paleta Corporativa Verde */
+  --color-primario: #16a34a;
+  --color-primario-rgb: 22, 163, 74;
+  --color-primario-hover: #15803d;
+  --color-primario-suave: rgba(22, 163, 74, 0.12);
+  --color-secundario: #0ea5e9;
+  --color-secundario-suave: rgba(14, 165, 233, 0.12);
+  --color-exito: #22c55e;
+  --color-exito-suave: rgba(34, 197, 94, 0.15);
+  --color-advertencia: #f59e0b;
+  --color-advertencia-suave: rgba(245, 158, 11, 0.15);
+  --color-peligro: #ef4444;
+  --color-peligro-suave: rgba(239, 68, 68, 0.15);
+  --color-info: #3b82f6;
+  --color-info-suave: rgba(59, 130, 246, 0.15);
+
+  /* Tipografía y Espaciado */
+  --fuente-principal: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --radio-sm: 8px;
+  --radio-md: 12px;
+  --radio-lg: 16px;
+  --radio-xl: 24px;
+  --radio-redondo: 9999px;
+  --ancho-sidebar: 270px;
+  --alto-header: 64px;
+  --transicion-rapida: 0.2s ease;
+  --transicion-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* TEMA CLARO (Default) */
+[data-theme="light"] {
+  --color-fondo: #f1f5f9;
+  --color-superficie: #ffffff;
+  --color-superficie-hover: #f8fafc;
+  --color-sidebar: #ffffff;
+  --color-header: #ffffff;
+  --color-borde: #e2e8f0;
+  --color-borde-fuerte: #cbd5e1;
+  --color-texto-primario: #0f172a;
+  --color-texto-secundario: #475569;
+  --color-texto-atenuado: #94a3b8;
+  --color-input-fondo: #ffffff;
+  --sombra-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --sombra-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --sombra-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --sombra-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --sombra-tarjeta: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --overlay-modal: rgba(15, 23, 42, 0.45);
+}
+
+/* TEMA OSCURO */
+[data-theme="dark"] {
+  --color-fondo: #090d16;
+  --color-superficie: #111827;
+  --color-superficie-hover: #1f2937;
+  --color-sidebar: #0f172a;
+  --color-header: #0f172a;
+  --color-borde: #1e293b;
+  --color-borde-fuerte: #334155;
+  --color-texto-primario: #f8fafc;
+  --color-texto-secundario: #94a3b8;
+  --color-texto-atenuado: #64748b;
+  --color-input-fondo: #1e293b;
+  --sombra-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --sombra-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --sombra-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --sombra-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --sombra-tarjeta: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --overlay-modal: rgba(0, 0, 0, 0.75);
+}
