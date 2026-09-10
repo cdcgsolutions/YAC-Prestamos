@@ -1,4 +1,4 @@
-﻿import { ComponenteModal } from "./ComponenteModal.js";
+import { ComponenteModal } from "./ComponenteModal.js";
 import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
 import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 
@@ -68,19 +68,6 @@ export class ModalCliente {
               <input type="text" id="InputClienteDireccion" class="ControlInput" value="${Cliente ? (Cliente.Direccion || "") : ""}" autocomplete="off" />
             </div>
           </div>
-
-          ${
-            EsEdicion
-              ? `
-            <div class="ColumnaCompleta">
-              <div class="ModalCheckbox">
-                <input type="checkbox" id="CheckClienteHabilitado" ${Cliente.EstaHabilitado ? "checked" : ""} />
-                <label for="CheckClienteHabilitado">Cliente Habilitado / Activo</label>
-              </div>
-            </div>
-          `
-              : ""
-          }
         </div>
 
         <div class="ModalAcciones">
@@ -105,7 +92,6 @@ export class ModalCliente {
         const InputCelular = CuerpoEl.querySelector("#InputClienteCelular");
         const InputNacimiento = CuerpoEl.querySelector("#InputClienteNacimiento");
         const SelectEstadoCivil = CuerpoEl.querySelector("#SelectClienteEstadoCivil");
-        const CheckHab = CuerpoEl.querySelector("#CheckClienteHabilitado");
         const BotonCancelar = CuerpoEl.querySelector("#BotonCancelarCliente");
         const BotonGuardar = CuerpoEl.querySelector("#BotonGuardarCliente");
         const TextoGuardar = CuerpoEl.querySelector("#TextoGuardarCliente");
@@ -124,7 +110,7 @@ export class ModalCliente {
           const Celular = InputCelular.value.trim();
           const FechaNacimiento = InputNacimiento.value || null;
           const EstadoCivil = SelectEstadoCivil.value;
-          const EstaHabilitado = CheckHab ? CheckHab.checked : true;
+          const EstaHabilitado = Cliente ? Cliente.EstaHabilitado : true;
 
           if (!Nombre || !Celular || !EstadoCivil) {
             ServicioNotificaciones.MostrarAdvertencia("Por favor complete los campos obligatorios (Nombre, Celular, Estado Civil).", "Campos Requeridos");

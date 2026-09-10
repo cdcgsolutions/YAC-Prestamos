@@ -1,4 +1,4 @@
-﻿import { LayoutPrincipal } from "./LayoutPrincipal.js";
+import { LayoutPrincipal } from "./LayoutPrincipal.js";
 import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
 
 export class PaginaInicio {
@@ -37,19 +37,18 @@ export class PaginaInicio {
           <div class="ListaPillsAccesos">
             <a href="#prestamos" class="PillAcceso Verde">
               <i class="fa-solid fa-plus"></i>
-              <span>Nuevo Préstamo</span>
+              <span class="TextoLargo">Nuevo Préstamo</span>
+              <span class="TextoCorto">Préstamo</span>
             </a>
             <a href="#clientes" class="PillAcceso Azul">
               <i class="fa-solid fa-user-plus"></i>
-              <span>Registrar Cliente</span>
-            </a>
-            <a href="#prestamos" class="PillAcceso Amarillo">
-              <i class="fa-solid fa-receipt"></i>
-              <span>Cobranzas y Pagos</span>
+              <span class="TextoLargo">Registrar Cliente</span>
+              <span class="TextoCorto">Cliente</span>
             </a>
             <a href="#usuarios" class="PillAcceso Morado">
               <i class="fa-solid fa-users-gear"></i>
-              <span>Usuarios</span>
+              <span class="TextoLargo">Usuarios</span>
+              <span class="TextoCorto">Usuarios</span>
             </a>
           </div>
         </div>
@@ -66,7 +65,7 @@ export class PaginaInicio {
             </div>
             <div class="KpiValor" id="MetricaClientesActivos">0</div>
             <div class="KpiPie">
-              <i class="fa-solid fa-circle-check"></i> Clientes habilitados
+              <i class="fa-solid fa-circle-check"></i> Clientes activos
             </div>
           </div>
 

@@ -1,5 +1,6 @@
-﻿import { LayoutPrincipal } from "./LayoutPrincipal.js";
+import { LayoutPrincipal } from "./LayoutPrincipal.js";
 import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
+import { ServicioSesion } from "../servicios/ServicioSesion.js";
 import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 import { ComponentePaginacion } from "./ComponentePaginacion.js";
 import { ModalUsuario } from "./ModalUsuario.js";
@@ -7,20 +8,29 @@ import { ModalUsuario } from "./ModalUsuario.js";
 export class PaginaUsuarios {
   static ListaUsuarios = [];
   static ListaRoles = [];
+  static UsuarioLogueado = null;
   static PaginaActual = 1;
   static ElementosPorPagina = 10;
   static TextoBusqueda = "";
 
   static async Renderizar() {
+    this.UsuarioLogueado = await ServicioSesion.ObtenerUsuarioActual();
+    const IdRolLogueado = this.UsuarioLogueado ? Number(this.UsuarioLogueado.IdRol) : 3;
+    const TienePermisosGestion = IdRolLogueado === 1 || IdRolLogueado === 2;
+
     const HtmlCuerpo = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-primario);">Gestión de Usuarios</h2>
           <p style="color: var(--color-texto-secundario); font-size: 0.85rem;">Control de accesos, roles y operadores del sistema.</p>
         </div>
-        <button class="Boton Boton-Primario" id="BotonNuevoUsuario">
-          <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
-        </button>
+        ${
+          TienePermisosGestion
+            ? `<button class="Boton Boton-Primario" id="BotonNuevoUsuario">
+          <i class="fa-solid fa-user-plus"></i> <span class="TextoLargo">Nuevo Usuario</span><span class="TextoCorto">Usuario</span>
+        </button>`
+            : ""
+        }
       </div>
 
       <div class="ContenedorTabla">
@@ -42,12 +52,12 @@ export class PaginaUsuarios {
                 <th>Correo Electrónico</th>
                 <th>Rol</th>
                 <th>Estado</th>
-                <th style="text-align: center; width: 120px;">Acciones</th>
+                ${TienePermisosGestion ? '<th style="text-align: center; width: 140px;">Acciones</th>' : ""}
               </tr>
             </thead>
             <tbody id="CuerpoTablaUsuarios">
               <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem;">
+                <td colspan="${TienePermisosGestion ? "6" : "5"}" style="text-align: center; padding: 2rem;">
                   <div class="Spinner SpinnerOscuro"></div>
                   <div style="margin-top: 0.5rem; color: var(--color-texto-secundario);">Cargando usuarios...</div>
                 </td>
@@ -98,13 +108,15 @@ export class PaginaUsuarios {
 
   static async CargarDatos() {
     try {
-      const [RespRoles, RespUsers] = await Promise.all([
+      const [RespRoles, RespUsers, UsuarioActual] = await Promise.all([
         ServicioFirebase.ObtenerRoles(),
-        ServicioFirebase.ObtenerUsuarios()
+        ServicioFirebase.ObtenerUsuarios(),
+        ServicioSesion.ObtenerUsuarioActual()
       ]);
 
       this.ListaRoles = RespRoles.Datos || [];
       this.ListaUsuarios = RespUsers.Datos || [];
+      this.UsuarioLogueado = UsuarioActual;
       this.ActualizarTabla();
     } catch (Error) {
       ServicioNotificaciones.MostrarError("Error al cargar la lista de usuarios: " + Error.message);
@@ -122,6 +134,11 @@ export class PaginaUsuarios {
     const ContenedorPaginacion = document.getElementById("ContenedorPaginacionUsuarios");
     if (!CuerpoTabla || !ContenedorMovil) return;
 
+    // Jerarquía de roles del usuario actualmente autenticado:
+    const IdRolLogueado = this.UsuarioLogueado ? Number(this.UsuarioLogueado.IdRol) : 3;
+    const EsSuperAdminLogueado = IdRolLogueado === 1;
+    const TienePermisosGestion = IdRolLogueado === 1 || IdRolLogueado === 2;
+
     const UsuariosFiltrados = this.ListaUsuarios.filter((u) => {
       if (!this.TextoBusqueda) return true;
       const Nombre = (u.NombreUsuario || "").toLowerCase();
@@ -136,7 +153,7 @@ export class PaginaUsuarios {
           No se encontraron usuarios registrados.
         </div>
       `;
-      CuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem;">No se encontraron usuarios.</td></tr>`;
+      CuerpoTabla.innerHTML = `<tr><td colspan="${TienePermisosGestion ? "6" : "5"}" style="text-align: center; padding: 2rem;">No se encontraron usuarios.</td></tr>`;
       ContenedorMovil.innerHTML = VacioHTML;
       if (ContenedorPaginacion) ContenedorPaginacion.innerHTML = "";
       return;
@@ -153,8 +170,17 @@ export class PaginaUsuarios {
 
     PaginaElementos.forEach((User) => {
       const EstadoBadge = User.EstaHabilitado
-        ? '<span class="Badge Badge-Habilitado"><i class="fa-solid fa-circle-check"></i> Habilitado</span>'
-        : '<span class="Badge Badge-Deshabilitado"><i class="fa-solid fa-ban"></i> Deshabilitado</span>';
+        ? '<span class="Badge Badge-Activo"><i class="fa-solid fa-circle-check"></i> Activo</span>'
+        : '<span class="Badge Badge-Inactivo"><i class="fa-solid fa-ban"></i> Inactivo</span>';
+
+      const EsSuperAdminDestino = Number(User.IdRol) === 1;
+
+      // Reglas de permisos:
+      // - Rol 1 (SuperAdmin): puede editar y dar de baja a todos menos a sí mismo.
+      // - Rol 2 (Administrador): puede editar y dar de baja a roles 2 y 3 (NO a SuperAdmin).
+      // - Rol 3 (Usuario): no tiene permisos de gestión (columna de acciones oculta).
+      const PuedeEditar = TienePermisosGestion && (EsSuperAdminLogueado || !EsSuperAdminDestino);
+      const PuedeDesactivar = TienePermisosGestion && !EsSuperAdminDestino;
 
       // 1. Fila de Tabla para Escritorio
       FilasTablaHTML += `
@@ -164,20 +190,34 @@ export class PaginaUsuarios {
           <td>${User.CorreoElectronico || "-"}</td>
           <td><span class="Badge Badge-Info">${this.ObtenerNombreRol(User.IdRol)}</span></td>
           <td>${EstadoBadge}</td>
-          <td style="text-align: center;">
-            <div style="display: inline-flex; gap: 0.35rem;">
-              <button class="Boton-Icono Editar" data-id="${User.IdDocumento}" title="Editar Usuario">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button class="Boton-Icono ${User.EstaHabilitado ? "Eliminar" : "Exito"}" data-toggle-id="${User.IdDocumento}" title="${User.EstaHabilitado ? "Deshabilitar" : "Habilitar"}">
-                <i class="fa-solid ${User.EstaHabilitado ? "fa-ban" : "fa-circle-check"}"></i>
-              </button>
-            </div>
-          </td>
+          ${
+            TienePermisosGestion
+              ? `
+            <td style="text-align: center;">
+              <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                ${
+                  PuedeEditar
+                    ? `<button class="Boton-Icono Editar" data-id="${User.IdDocumento}" title="Editar Usuario">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>`
+                    : `<span class="Badge Badge-Info" title="SuperAdmin protegido contra edición" style="font-size: 0.725rem; opacity: 0.85;"><i class="fa-solid fa-lock"></i> Protegido</span>`
+                }
+                ${
+                  PuedeDesactivar
+                    ? `<button class="Boton-Icono ${User.EstaHabilitado ? "Eliminar" : "Exito"}" data-toggle-id="${User.IdDocumento}" title="${User.EstaHabilitado ? "Desactivar" : "Activar"}">
+                  <i class="fa-solid ${User.EstaHabilitado ? "fa-trash" : "fa-lock-open"}"></i>
+                </button>`
+                    : ""
+                }
+              </div>
+            </td>
+          `
+              : ""
+          }
         </tr>
       `;
 
-      // 2. Tarjeta (Card) para Móvil con Botón Secundario adaptable a Modo Claro/Oscuro
+      // 2. Tarjeta (Card) para Móvil
       TarjetasMovilHTML += `
         <div class="TarjetaRegistroMovil">
           <div class="CabeceraRegistroMovil">
@@ -198,15 +238,29 @@ export class PaginaUsuarios {
             </div>
           </div>
 
-          <div class="AccionesRegistroMovil">
-            <button class="Boton Boton-Secundario Boton-Sm" data-id="${User.IdDocumento}">
-              <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
-            </button>
-            <button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${User.IdDocumento}">
-              <i class="fa-solid ${User.EstaHabilitado ? "fa-ban" : "fa-circle-check"}" style="color: ${User.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
-              ${User.EstaHabilitado ? "Deshabilitar" : "Habilitar"}
-            </button>
-          </div>
+          ${
+            TienePermisosGestion && (PuedeEditar || PuedeDesactivar)
+              ? `
+            <div class="AccionesRegistroMovil">
+              ${
+                PuedeEditar
+                  ? `<button class="Boton Boton-Secundario Boton-Sm" data-id="${User.IdDocumento}">
+                <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
+              </button>`
+                  : `<span class="Badge Badge-Info" style="font-size: 0.75rem; padding: 0.4rem 0.6rem;"><i class="fa-solid fa-lock"></i> SuperAdmin Protegido</span>`
+              }
+              ${
+                PuedeDesactivar
+                  ? `<button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${User.IdDocumento}">
+                <i class="fa-solid ${User.EstaHabilitado ? "fa-trash" : "fa-lock-open"}" style="color: ${User.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
+                ${User.EstaHabilitado ? "Desactivar" : "Activar"}
+              </button>`
+                  : ""
+              }
+            </div>
+          `
+              : ""
+          }
         </div>
       `;
     });
@@ -230,9 +284,20 @@ export class PaginaUsuarios {
     const AsignarEventosBotones = (Contenedor) => {
       Contenedor.querySelectorAll("[data-id]").forEach((Boton) => {
         Boton.addEventListener("click", () => {
+          if (!TienePermisosGestion) {
+            ServicioNotificaciones.MostrarAdvertencia("Los usuarios con rol operador no tienen permisos de edición.", "Acceso Restringido");
+            return;
+          }
+
           const DocId = Boton.dataset.id;
           const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
           if (User) {
+            // Seguridad: Si es SuperAdmin y quien edita no es SuperAdmin, bloquear
+            if (Number(User.IdRol) === 1 && !EsSuperAdminLogueado) {
+              ServicioNotificaciones.MostrarAdvertencia("No tiene privilegios para modificar la cuenta de un SuperAdmin.", "Acceso Denegado");
+              return;
+            }
+
             ModalUsuario.Abrir({
               Usuario: User,
               Roles: this.ListaRoles,
@@ -244,10 +309,36 @@ export class PaginaUsuarios {
 
       Contenedor.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
         Boton.addEventListener("click", async () => {
+          if (!TienePermisosGestion) {
+            ServicioNotificaciones.MostrarAdvertencia("No tiene permisos para dar de baja o activar usuarios.", "Acción no permitida");
+            return;
+          }
+
           const DocId = Boton.dataset.toggleId;
           const User = this.ListaUsuarios.find((u) => u.IdDocumento === DocId);
           if (User) {
+            if (Number(User.IdRol) === 1) {
+              ServicioNotificaciones.MostrarAdvertencia("El usuario SuperAdmin está protegido y no puede ser desactivado.", "Acción no permitida");
+              return;
+            }
             const NuevoEstado = !User.EstaHabilitado;
+
+            const Titulo = User.EstaHabilitado ? "¿Desactivar Usuario?" : "¿Activar Usuario?";
+            const Mensaje = User.EstaHabilitado
+              ? `¿Está seguro de que desea desactivar a "${User.NombreUsuario}"? No podrá acceder al sistema.`
+              : `¿Desea activar a "${User.NombreUsuario}" para acceder al sistema?`;
+            const Icono = User.EstaHabilitado ? "warning" : "question";
+
+            const Confirmado = await ServicioNotificaciones.Confirmar({
+              Titulo,
+              Mensaje,
+              Icono,
+              TextoConfirmar: User.EstaHabilitado ? "Sí, Desactivar" : "Sí, Activar",
+              ColorBoton: User.EstaHabilitado ? "Peligro" : "Primario"
+            });
+
+            if (!Confirmado) return;
+
             try {
               const Resp = await ServicioFirebase.ActualizarUsuario(
                 User.IdDocumento,
@@ -259,13 +350,13 @@ export class PaginaUsuarios {
               );
               if (Resp.Exito) {
                 User.EstaHabilitado = NuevoEstado;
-                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Usuario habilitado." : "Usuario deshabilitado.");
+                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Usuario activado con éxito." : "Usuario desactivado con éxito.");
                 this.ActualizarTabla();
               } else {
                 ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
               }
-            } catch (Err) {
-              ServicioNotificaciones.MostrarError("Error: " + Err.message);
+            } catch (Error) {
+              ServicioNotificaciones.MostrarError("Error: " + Error.message);
             }
           }
         });

@@ -1,16 +1,20 @@
-﻿import { LayoutPrincipal } from "./LayoutPrincipal.js";
+import { LayoutPrincipal } from "./LayoutPrincipal.js";
 import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
+import { ServicioSesion } from "../servicios/ServicioSesion.js";
 import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 import { ComponentePaginacion } from "./ComponentePaginacion.js";
 import { ModalCliente } from "./ModalCliente.js";
 
 export class PaginaClientes {
   static ListaClientes = [];
+  static UsuarioLogueado = null;
   static PaginaActual = 1;
   static ElementosPorPagina = 10;
   static TextoBusqueda = "";
 
   static async Renderizar() {
+    this.UsuarioLogueado = await ServicioSesion.ObtenerUsuarioActual();
+
     const HtmlCuerpo = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
@@ -18,7 +22,7 @@ export class PaginaClientes {
           <p style="color: var(--color-texto-secundario); font-size: 0.85rem;">Registro y administración de prestatarios y cartera de clientes.</p>
         </div>
         <button class="Boton Boton-Primario" id="BotonNuevoCliente">
-          <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+          <i class="fa-solid fa-user-plus"></i> <span class="TextoLargo">Nuevo Cliente</span><span class="TextoCorto">Cliente</span>
         </button>
       </div>
 
@@ -99,24 +103,28 @@ export class PaginaClientes {
 
   static async CargarDatos() {
     try {
-      const Resp = await ServicioFirebase.ObtenerClientes();
+      const [Resp, UsuarioActual] = await Promise.all([
+        ServicioFirebase.ObtenerClientes(),
+        ServicioSesion.ObtenerUsuarioActual()
+      ]);
       this.ListaClientes = Resp.Datos || [];
+      this.UsuarioLogueado = UsuarioActual;
       this.ActualizarTabla();
     } catch (Error) {
-      ServicioNotificaciones.MostrarError("Error al cargar la lista de clientes: " + Error.message);
+      ServicioNotificaciones.MostrarError("Error al cargar clientes: " + Error.message);
     }
   }
 
-  static FormatearFecha(FechaISO) {
-    if (!FechaISO) return "N/A";
+  static FormatearFecha(FechaIso) {
+    if (!FechaIso) return "-";
     try {
-      const Partes = FechaISO.substring(0, 10).split("-");
+      const Partes = FechaIso.split("-");
       if (Partes.length === 3) {
         return `${Partes[2]}/${Partes[1]}/${Partes[0]}`;
       }
-      return FechaISO;
-    } catch {
-      return FechaISO;
+      return FechaIso;
+    } catch (e) {
+      return FechaIso;
     }
   }
 
@@ -126,6 +134,10 @@ export class PaginaClientes {
     const ContenedorPaginacion = document.getElementById("ContenedorPaginacionClientes");
     if (!CuerpoTabla || !ContenedorMovil) return;
 
+    // Jerarquía de permisos: Rol 1 (SuperAdmin) y Rol 2 (Admin) pueden dar de baja / activar. Rol 3 (Usuario) NO puede deshabilitar.
+    const IdRolLogueado = this.UsuarioLogueado ? Number(this.UsuarioLogueado.IdRol) : 3;
+    const PuedeDesactivar = IdRolLogueado === 1 || IdRolLogueado === 2;
+
     const ClientesFiltrados = this.ListaClientes.filter((c) => {
       if (!this.TextoBusqueda) return true;
       const Nombre = (c.Nombre || "").toLowerCase();
@@ -134,7 +146,7 @@ export class PaginaClientes {
       const Direccion = (c.Direccion || "").toLowerCase();
       return (
         Nombre.includes(this.TextoBusqueda) ||
-        Celular.includes(this.TextoBusqueda) ||
+        Celular.includes(this.TextoBusectar || "").toLowerCase() ||
         Correo.includes(this.TextoBusqueda) ||
         Direccion.includes(this.TextoBusqueda)
       );
@@ -164,8 +176,8 @@ export class PaginaClientes {
 
     PaginaElementos.forEach((Cli) => {
       const EstadoBadge = Cli.EstaHabilitado
-        ? '<span class="Badge Badge-Habilitado"><i class="fa-solid fa-circle-check"></i> Habilitado</span>'
-        : '<span class="Badge Badge-Deshabilitado"><i class="fa-solid fa-ban"></i> Deshabilitado</span>';
+        ? '<span class="Badge Badge-Activo"><i class="fa-solid fa-circle-check"></i> Activo</span>'
+        : '<span class="Badge Badge-Inactivo"><i class="fa-solid fa-ban"></i> Inactivo</span>';
 
       // 1. Fila de tabla para escritorio
       FilasTablaHTML += `
@@ -179,13 +191,17 @@ export class PaginaClientes {
           <td>${Cli.Correo || "-"}</td>
           <td>${EstadoBadge}</td>
           <td style="text-align: center;">
-            <div style="display: inline-flex; gap: 0.35rem;">
+            <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
               <button class="Boton-Icono Editar" data-id="${Cli.IdDocumento}" title="Editar Cliente">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button class="Boton-Icono ${Cli.EstaHabilitado ? "Eliminar" : "Exito"}" data-toggle-id="${Cli.IdDocumento}" title="${Cli.EstaHabilitado ? "Eliminar (Deshabilitar)" : "Restaurar (Habilitar)"}">
-                <i class="fa-solid ${Cli.EstaHabilitado ? "fa-trash" : "fa-trash-can-arrow-up"}"></i>
-              </button>
+              ${
+                PuedeDesactivar
+                  ? `<button class="Boton-Icono ${Cli.EstaHabilitado ? "Eliminar" : "Exito"}" data-toggle-id="${Cli.IdDocumento}" title="${Cli.EstaHabilitado ? "Desactivar" : "Activar"}">
+                <i class="fa-solid ${Cli.EstaHabilitado ? "fa-trash" : "fa-lock-open"}"></i>
+              </button>`
+                  : ""
+              }
             </div>
           </td>
         </tr>
@@ -231,10 +247,14 @@ export class PaginaClientes {
             <button class="Boton Boton-Secundario Boton-Sm" data-id="${Cli.IdDocumento}">
               <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
             </button>
-            <button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${Cli.IdDocumento}">
-              <i class="fa-solid ${Cli.EstaHabilitado ? "fa-trash" : "fa-trash-can-arrow-up"}" style="color: ${Cli.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
-              ${Cli.EstaHabilitado ? "Eliminar" : "Restaurar"}
-            </button>
+            ${
+              PuedeDesactivar
+                ? `<button class="Boton Boton-Secundario Boton-Sm" data-toggle-id="${Cli.IdDocumento}">
+              <i class="fa-solid ${Cli.EstaHabilitado ? "fa-trash" : "fa-lock-open"}" style="color: ${Cli.EstaHabilitado ? "var(--color-peligro)" : "var(--color-exito)"};"></i>
+              ${Cli.EstaHabilitado ? "Desactivar" : "Activar"}
+            </button>`
+                : ""
+            }
           </div>
         </div>
       `;
@@ -272,10 +292,32 @@ export class PaginaClientes {
 
       Contenedor.querySelectorAll("[data-toggle-id]").forEach((Boton) => {
         Boton.addEventListener("click", async () => {
+          if (!PuedeDesactivar) {
+            ServicioNotificaciones.MostrarAdvertencia("Los usuarios con rol operador no tienen permisos para dar de baja o activar clientes.", "Acceso Restringido");
+            return;
+          }
+
           const DocId = Boton.dataset.toggleId;
           const Cli = this.ListaClientes.find((c) => c.IdDocumento === DocId);
           if (Cli) {
             const NuevoEstado = !Cli.EstaHabilitado;
+
+            const Titulo = Cli.EstaHabilitado ? "¿Desactivar Cliente?" : "¿Activar Cliente?";
+            const Mensaje = Cli.EstaHabilitado
+              ? `¿Está seguro de que desea desactivar a "${Cli.Nombre}"? No podrá emitir nuevos préstamos.`
+              : `¿Desea activar a "${Cli.Nombre}" en el sistema?`;
+            const Icono = Cli.EstaHabilitado ? "warning" : "question";
+
+            const Confirmado = await ServicioNotificaciones.Confirmar({
+              Titulo,
+              Mensaje,
+              Icono,
+              TextoConfirmar: Cli.EstaHabilitado ? "Sí, Desactivar" : "Sí, Activar",
+              ColorBoton: Cli.EstaHabilitado ? "Peligro" : "Primario"
+            });
+
+            if (!Confirmado) return;
+
             try {
               const Resp = await ServicioFirebase.ActualizarCliente(
                 Cli.IdDocumento,
@@ -289,13 +331,13 @@ export class PaginaClientes {
               );
               if (Resp.Exito) {
                 Cli.EstaHabilitado = NuevoEstado;
-                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Cliente restaurado." : "Cliente deshabilitado.");
+                ServicioNotificaciones.MostrarExito(NuevoEstado ? "Cliente activado con éxito." : "Cliente desactivado con éxito.");
                 this.ActualizarTabla();
               } else {
                 ServicioNotificaciones.MostrarError(Resp.Mensaje || "No se pudo cambiar el estado.");
               }
-            } catch (Err) {
-              ServicioNotificaciones.MostrarError("Error: " + Err.message);
+            } catch (Error) {
+              ServicioNotificaciones.MostrarError("Error: " + Error.message);
             }
           }
         });

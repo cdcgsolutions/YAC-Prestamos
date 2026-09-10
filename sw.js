@@ -1,4 +1,4 @@
-﻿const NombreCache = "yac-prestamos-v3";
+﻿const NombreCache = "yac-prestamos-v5";
 const RecursosCache = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const RecursosCache = [
   "./css/variables.css",
   "./css/styles.css",
   "./iconos/icon.svg",
+  "./iconos/icon.png",
   "./js/app.js",
   "./js/Enrutador.js",
   "./js/servicios/ConfiguracionFirebase.js",

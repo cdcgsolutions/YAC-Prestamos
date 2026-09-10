@@ -1,19 +1,29 @@
-﻿{
+{
   "name": "YAC Préstamos - Sistema de Gestión",
   "short_name": "YAC Préstamos",
-  "description": "Sistema moderno de gestión y control de préstamos, clientes y pagos",
+  "description": "Sistema integral de gestión y control financiero de préstamos, clientes y pagos",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0f172a",
   "theme_color": "#16a34a",
-  "categories": ["finance", "productivity", "business"],
+  "categories": [
+    "finance",
+    "productivity",
+    "business"
+  ],
   "icons": [
     {
       "src": "./iconos/icon.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./iconos/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

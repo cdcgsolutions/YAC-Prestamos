@@ -1,4 +1,4 @@
-﻿import { LayoutPrincipal } from "./LayoutPrincipal.js";
+import { LayoutPrincipal } from "./LayoutPrincipal.js";
 import { ServicioFirebase } from "../servicios/ServicioFirebase.js";
 import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 import { ComponentePaginacion } from "./ComponentePaginacion.js";
@@ -23,22 +23,22 @@ export class PaginaPrestamos {
           <p style="color: var(--color-texto-secundario); font-size: 0.9rem;">Emisión, cálculo de intereses y seguimiento de amortizaciones.</p>
         </div>
         <button class="Boton Boton-Primario" id="BotonNuevoPrestamo">
-          <i class="fa-solid fa-plus"></i> Nuevo Préstamo
+          <i class="fa-solid fa-plus"></i> <span class="TextoLargo">Nuevo Préstamo</span><span class="TextoCorto">Préstamo</span>
         </button>
       </div>
 
       <!-- FILTROS Y BÚSQUEDA -->
       <div class="Tarjeta" style="margin-bottom: 1.5rem; padding: 1.25rem;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: center;">
-          <div class="EnvoltorioInput">
+        <div class="FiltrosPrestamosGrid">
+          <div class="EnvoltorioInput ItemBuscadorPrestamos">
             <i class="fa-solid fa-magnifying-glass IconoInput"></i>
             <input type="text" id="InputBuscarPrestamo" class="ControlInput" placeholder="Buscar por cliente o # ID..." />
           </div>
 
-          <div class="EnvoltorioInput">
+          <div class="EnvoltorioInput ItemFiltroEstado">
             <i class="fa-solid fa-filter IconoInput"></i>
             <select id="SelectFiltroEstado" class="ControlInput">
-              <option value="Todos">Filtrar por Estado (Todos)</option>
+              <option value="Todos">Estado (Todos)</option>
               <option value="Activo">Activo</option>
               <option value="Pagado">Pagado</option>
               <option value="Atrasado">Atrasado</option>
@@ -46,10 +46,10 @@ export class PaginaPrestamos {
             </select>
           </div>
 
-          <div class="EnvoltorioInput">
+          <div class="EnvoltorioInput ItemFiltroModalidad">
             <i class="fa-solid fa-calendar-days IconoInput"></i>
             <select id="SelectFiltroModalidad" class="ControlInput">
-              <option value="Todas">Modalidad de Cobro (Todas)</option>
+              <option value="Todas">Modalidad (Todas)</option>
               <option value="Diario">Diario</option>
               <option value="Semanal">Semanal</option>
               <option value="Quincenal">Quincenal</option>
@@ -194,6 +194,11 @@ export class PaginaPrestamos {
         PorcentajeProgreso = Math.min(100, (MontoPagado / MontoTotal) * 100);
       }
 
+      // Reglas de estado completado / pagado:
+      const EstaCompletado = Prestamo.Estado === "Pagado" || Prestamo.Estado === "Completado" || SaldoPendiente <= 0;
+      const IconoHistorial = EstaCompletado ? "fa-solid fa-file-lines" : "fa-solid fa-clock-rotate-left";
+      const TituloHistorial = EstaCompletado ? "Ver Comprobante / Historial Completo" : "Historial de Pagos";
+
       TarjetasHTML += `
         <div class="TarjetaPrestamo">
           <div>
@@ -234,14 +239,20 @@ export class PaginaPrestamos {
           </div>
 
           <div class="AccionesPrestamo">
-            <button class="Boton-Icono Editar" data-editar-id="${Prestamo.IdDocumento}" title="Editar Préstamo">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-            <button class="Boton-Icono Exito" data-pagar-id="${Prestamo.IdDocumento}" title="Registrar Pago" ${Prestamo.Estado === "Pagado" ? "disabled" : ""}>
-              <i class="fa-solid fa-money-bill-wave"></i>
-            </button>
-            <button class="Boton-Icono" data-historial-id="${Prestamo.IdDocumento}" title="Historial de Pagos" style="color: var(--color-secundario);">
-              <i class="fa-solid fa-clock-rotate-left"></i>
+            ${
+              !EstaCompletado
+                ? `
+              <button class="Boton Boton-Secundario Boton-Sm" data-editar-id="${Prestamo.IdDocumento}" title="Editar Préstamo">
+                <i class="fa-solid fa-pen-to-square" style="color: var(--color-info);"></i> Editar
+              </button>
+              <button class="Boton Boton-Primario Boton-Sm" data-pagar-id="${Prestamo.IdDocumento}" title="Registrar Pago">
+                <i class="fa-solid fa-money-bill-wave"></i> Pagar
+              </button>
+            `
+                : ""
+            }
+            <button class="Boton Boton-Secundario Boton-Sm" data-historial-id="${Prestamo.IdDocumento}" title="${TituloHistorial}">
+              <i class="${IconoHistorial}" style="color: ${EstaCompletado ? "var(--color-primario)" : "var(--color-secundario)"};"></i> Historial
             </button>
           </div>
         </div>
@@ -268,6 +279,11 @@ export class PaginaPrestamos {
         const DocId = Boton.dataset.editarId;
         const P = this.ListaPrestamos.find((item) => item.IdDocumento === DocId);
         if (P) {
+          const Saldo = Number(P.SaldoPendiente) || 0;
+          if (P.Estado === "Pagado" || P.Estado === "Completado" || Saldo <= 0) {
+            ServicioNotificaciones.MostrarAdvertencia("El préstamo ya está completado y no puede ser editado.", "Préstamo Pagado");
+            return;
+          }
           ModalPrestamo.Abrir({
             Prestamo: P,
             Clientes: this.ListaClientes,
@@ -282,6 +298,11 @@ export class PaginaPrestamos {
         const DocId = Boton.dataset.pagarId;
         const P = this.ListaPrestamos.find((item) => item.IdDocumento === DocId);
         if (P) {
+          const Saldo = Number(P.SaldoPendiente) || 0;
+          if (P.Estado === "Pagado" || P.Estado === "Completado" || Saldo <= 0) {
+            ServicioNotificaciones.MostrarInfo("Este préstamo ya ha sido pagado en su totalidad.", "Préstamo Liquidado");
+            return;
+          }
           ModalPago.Abrir({
             Prestamo: P,
             AlGuardar: () => this.CargarDatos()

@@ -662,6 +662,14 @@ input:-webkit-autofill:active {
    ELEMENTOS GENERALES (BOTONES, INPUTS, TABLAS, MODALES)
    ========================================================= */
 
+.TextoCorto {
+  display: none !important;
+}
+
+.TextoLargo {
+  display: inline !important;
+}
+
 .Boton {
   display: inline-flex;
   align-items: center;
@@ -772,6 +780,15 @@ input:-webkit-autofill:active {
 
 .ControlInput.SinIcono {
   padding-left: 1rem;
+}
+
+.ControlInput:disabled,
+.ControlInput[readonly] {
+  background-color: var(--color-superficie-hover);
+  color: var(--color-texto-atenuado);
+  cursor: not-allowed;
+  opacity: 0.85;
+  border-color: var(--color-borde);
 }
 
 .ControlInput:focus {
@@ -890,7 +907,7 @@ input:-webkit-autofill:active {
   color: #d97706;
 }
 
-.Badge-Anulado, .Badge-Deshabilitado, .Badge-Danger {
+.Badge-Inactivo, .Badge-Anulado, .Badge-Deshabilitado, .Badge-Danger {
   background-color: var(--color-peligro-suave);
   color: #dc2626;
 }
@@ -989,6 +1006,8 @@ input:-webkit-autofill:active {
 }
 
 .AccionesPrestamo {
+  flex-wrap: wrap;
+  align-items: center;
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
@@ -1268,6 +1287,98 @@ input:-webkit-autofill:active {
   }
 }
 
+
+/* DIALOGO DE CONFIRMACION INTERACTIVO */
+.ModalOverlayConfirmacion {
+  z-index: 250;
+}
+
+.ModalConfirmacionVentana {
+  max-width: 420px !important;
+  text-align: center;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--radio-xl);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}
+
+.ModalConfirmacionIcono {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.25rem;
+  animation: IconoPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes IconoPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.ModalConfirmacionIcono.Warning {
+  background-color: var(--color-advertencia-suave);
+  color: var(--color-advertencia);
+}
+
+.ModalConfirmacionIcono.Danger {
+  background-color: var(--color-peligro-suave);
+  color: var(--color-peligro);
+}
+
+.ModalConfirmacionIcono.Question,
+.ModalConfirmacionIcono.Info {
+  background-color: var(--color-info-suave);
+  color: var(--color-info);
+}
+
+.ModalConfirmacionIcono.Success {
+  background-color: var(--color-exito-suave);
+  color: var(--color-exito);
+}
+
+.ModalConfirmacionTitulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-texto-primario);
+  margin-bottom: 0.5rem;
+}
+
+.ModalConfirmacionMensaje {
+  font-size: 0.925rem;
+  color: var(--color-texto-secundario);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.ModalConfirmacionAcciones {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.ModalConfirmacionAcciones .Boton {
+  flex: 1;
+  padding: 0.65rem 1rem;
+}
+
+.Boton-Peligro {
+  background-color: var(--color-peligro);
+  color: #ffffff;
+  border: none;
+}
+
+.Boton-Peligro:hover:not(:disabled) {
+  background-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
 /* TOASTS */
 .ContenedorToasts {
   position: fixed;
@@ -1389,16 +1500,25 @@ input:-webkit-autofill:active {
     padding: 0.75rem 1rem;
   }
 
+  .TextoCorto {
+    display: inline !important;
+  }
+
+  .TextoLargo {
+    display: none !important;
+  }
+
   .ListaPillsAccesos {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
   }
 
   .PillAcceso {
     justify-content: center;
-    padding: 0.5rem;
+    padding: 0.55rem 0.25rem;
     font-size: 0.775rem;
+    white-space: nowrap;
   }
 
   .GridKpisCompacto {
@@ -1512,4 +1632,44 @@ input:-webkit-autofill:active {
 .Boton-Sm {
   padding: 0.45rem 0.85rem !important;
   font-size: 0.8rem !important;
+}
+@media (max-width: 420px) {
+  .PillAcceso {
+    font-size: 0.725rem;
+    gap: 0.3rem;
+    padding: 0.5rem 0.2rem;
+  }
+  .PillAcceso i {
+    font-size: 0.75rem;
+  }
+}
+
+
+/* FILTROS RESPONSIVOS DE PRÉSTAMOS (BUSCADOR 1 FILA, ESTADO Y MODALIDAD EN FILA DE 2) */
+.FiltrosPrestamosGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .FiltrosPrestamosGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+  .FiltrosPrestamosGrid .ItemBuscadorPrestamos {
+    grid-column: 1 / -1;
+  }
+  .FiltrosPrestamosGrid .ItemFiltroEstado {
+    grid-column: 1 / 2;
+  }
+  .FiltrosPrestamosGrid .ItemFiltroModalidad {
+    grid-column: 2 / 3;
+  }
+  .FiltrosPrestamosGrid select.ControlInput {
+    font-size: 0.825rem;
+    padding-left: 2rem;
+    padding-right: 0.4rem;
+  }
 }

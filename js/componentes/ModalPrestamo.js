@@ -5,6 +5,10 @@ import { ServicioNotificaciones } from "../servicios/ServicioNotificaciones.js";
 export class ModalPrestamo {
   static Abrir({ Prestamo = null, Clientes = [], AlGuardar = () => {} }) {
     const EsEdicion = Boolean(Prestamo && Prestamo.IdDocumento);
+    if (EsEdicion && (Prestamo.Estado === "Pagado" || Prestamo.Estado === "Completado" || Number(Prestamo.SaldoPendiente) <= 0)) {
+      ServicioNotificaciones.MostrarAdvertencia("Este préstamo ya está pagado y completado; no se permite su edición.", "Préstamo Liquidado");
+      return;
+    }
     const Titulo = EsEdicion 
       ? `<i class="fa-solid fa-file-pen"></i> Editar Préstamo` 
       : `<i class="fa-solid fa-hand-holding-dollar"></i> Nuevo Préstamo`;
@@ -12,7 +16,7 @@ export class ModalPrestamo {
     let OpcionesClientesHTML = '<option value="" disabled selected>Seleccione un cliente...</option>';
     Clientes.filter((c) => c.EstaHabilitado).forEach((Cli) => {
       const Seleccionado = (Prestamo && Prestamo.IdCliente === Cli.Id) ? "selected" : "";
-      OpcionesClientesHTML += `<option value="${Cli.Id}" ${Seleccionado}>${Cli.Nombre} (Doc: ${Cli.Id || "-"})</option>`;
+      OpcionesClientesHTML += `<option value="${Cli.Id}" ${Seleccionado}>${Cli.Nombre}</option>`;
     });
 
     const Modalidades = ["Diario", "Semanal", "Quincenal", "Mensual"];
